@@ -17,8 +17,8 @@ export async function findQuery(query: string) {
 }
 
 export function checkForKey(req: Request, res: Response) {
-  const apiKey = req.get('API-Key');
-  const keys = process.env.API_KEY?.split(' ');
+  const apiKey = req.get("API-Key");
+  const keys = process.env.API_KEY?.split(" ");
   if (!apiKey || !keys?.includes(apiKey)) {
     res.status(401).json({ error: "Unauthorized" });
     return false;

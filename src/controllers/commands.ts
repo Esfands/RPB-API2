@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import { findQuery } from '../maria';
+import { Request, Response, NextFunction } from "express";
+import { findQuery } from "../maria";
 
 /* Normal Commands */
 
@@ -17,7 +17,7 @@ export interface ICommand {
 }
 
 const getCommands = async (req: Request, res: Response, next: NextFunction) => {
-  let result = await findQuery('SELECT * FROM commands;');
+  let result = await findQuery("SELECT * FROM commands;");
   let commandData: any[] = [];
   result.forEach((cmd: ICommand) => {
     commandData.push({
@@ -30,17 +30,19 @@ const getCommands = async (req: Request, res: Response, next: NextFunction) => {
       Cooldown: cmd["Cooldown"],
       Testing: cmd["Testing"],
       OfflineOnly: cmd["OfflineOnly"],
-      Count: cmd["Count"]
-    })
+      Count: cmd["Count"],
+    });
   });
   return res.status(200).json({
-    data: commandData
-  })
-}
+    data: commandData,
+  });
+};
 
 const getCommand = async (req: Request, res: Response, next: NextFunction) => {
   let name: string = req.params.name;
-  let query = await findQuery(`SELECT * FROM commands WHERE Name='${name}' LIMIT 1;`);
+  let query = await findQuery(
+    `SELECT * FROM commands WHERE Name='${name}' LIMIT 1;`
+  );
 
   return res.status(200).json({
     data: {
@@ -53,10 +55,10 @@ const getCommand = async (req: Request, res: Response, next: NextFunction) => {
       Cooldown: query[0]["Cooldown"],
       Testing: query[0]["Testing"],
       OfflineOnly: query[0]["OfflineOnly"],
-      Count: query[0]["Count"]
-    }
+      Count: query[0]["Count"],
+    },
   });
-}
+};
 
 /* OTF Commands */
 export interface IOTFCommand {
@@ -66,34 +68,44 @@ export interface IOTFCommand {
   Count: number;
 }
 
-const getOTFCommands = async (req: Request, res: Response, next: NextFunction) => {
-  let result = await findQuery('SELECT * FROM otf;');
+const getOTFCommands = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  let result = await findQuery("SELECT * FROM otf;");
   let commandData: any[] = [];
   result.forEach((cmd: IOTFCommand) => {
     commandData.push({
       Name: cmd["Name"],
       Response: cmd["Response"],
       Creator: cmd["Creator"],
-      Count: cmd["Count"]
+      Count: cmd["Count"],
     });
   });
   return res.status(200).json({
-    data: commandData
-  })
-}
+    data: commandData,
+  });
+};
 
-const getOTFCommand = async (req: Request, res: Response, next: NextFunction) => {
+const getOTFCommand = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   let name: string = req.params.name;
-  let query = await findQuery(`SELECT * FROM otf WHERE Name='${name}' LIMIT 1;`);
+  let query = await findQuery(
+    `SELECT * FROM otf WHERE Name='${name}' LIMIT 1;`
+  );
 
   return res.status(200).json({
     data: {
       Name: query[0]["Name"],
       Response: query[0]["Response"],
       Creator: query[0]["Creator"],
-      Count: query[0]["Count"]
-    }
+      Count: query[0]["Count"],
+    },
   });
-}
+};
 
 export default { getCommands, getCommand, getOTFCommands, getOTFCommand };

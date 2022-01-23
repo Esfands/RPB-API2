@@ -1,8 +1,8 @@
-import express, { Router } from 'express';
-import controller from '../controllers/commands';
+import express, { Router } from "express";
+import controller from "../controllers/commands";
 const router = express.Router();
 
-router.get('/commands', controller.getCommands);
+router.get("/commands", controller.getCommands);
 router.get("/commands/:name", controller.getCommand);
 
 router.get("/otf", controller.getOTFCommands);
