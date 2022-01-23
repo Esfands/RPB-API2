@@ -173,7 +173,7 @@ mongoose.connect(URI).then(() => {
 
   /* Server */
   const httpServer = http.createServer(router);
-  const PORT: any = process.env.PORT ?? 443;
+  const PORT: any = process.env.PORT ?? 4500;
   httpServer.listen(PORT, () =>
     console.log(`The server is running on port ${PORT}`)
   );
