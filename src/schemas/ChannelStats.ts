@@ -16,7 +16,7 @@ let StreamStatsSchema = new Schema({
   hosting: String,
 });
 
-export const StreamStat: Model<IStreamStats | null> = model(
+export const StreamStat: Model<IStreamStats> = model(
   `streamstats`,
   StreamStatsSchema
 );
