@@ -74,6 +74,7 @@ mongoose.connect(URI).then(() => {
   router.use("/", retfuelRoutes);
   router.use("/", feedbackRoutes);
 
+  /* Event Sub */
   router.post("/eventsub", (req, res) => {
     let secret = getSecret();
     let message = getHmacMessage(req);
@@ -98,7 +99,7 @@ mongoose.connect(URI).then(() => {
         } else if (notification.subscription.type === "stream.offline") {
           StreamStat.findOneAndUpdate(
             { type: "esfandtv" },
-            { status: "offline", hosting: "" }
+            { status: "offline", hosting: "", wentOfflineAt: new Date() }
           ).then((res) => console.log("EsfandTV just went offline..."));
         } else if (notification.subscription.type === "channel.update") {
           StreamStat.findOneAndUpdate(
