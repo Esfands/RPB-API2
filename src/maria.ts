@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import { pool } from "./server";
 
-export async function findQuery(query: string) {
+export async function findQuery(query: string, values: any[]) {
   let conn;
   let data;
   try {
     conn = await pool.getConnection();
-    let toFetch = await conn.query(query);
+    let toFetch = await conn.query(query, values);
     data = toFetch;
   } catch (err) {
     throw err;

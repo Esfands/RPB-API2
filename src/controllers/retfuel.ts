@@ -10,9 +10,8 @@ export interface IChatter extends Document {
 
 const getRankings = async (req: Request, res: Response, next: NextFunction) => {
   let result = await findQuery(
-    "SELECT * FROM chatters ORDER BY RetFuel DESC LIMIT 25;"
-  );
-  let total = await findQuery("SELECT COUNT(*) FROM chatters");
+    "SELECT * FROM chatters ORDER BY RetFuel DESC LIMIT 25;", []);
+  let total = await findQuery("SELECT COUNT(*) FROM chatters", []);
   let chatterData: any[] = [];
   result.forEach((user: IChatter) => {
     chatterData.push({

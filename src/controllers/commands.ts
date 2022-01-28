@@ -17,7 +17,7 @@ export interface ICommand {
 }
 
 const getCommands = async (req: Request, res: Response, next: NextFunction) => {
-  let result = await findQuery("SELECT * FROM commands;");
+  let result = await findQuery("SELECT * FROM commands;", []);
   let commandData: any[] = [];
   result.forEach((cmd: ICommand) => {
     commandData.push({
@@ -41,8 +41,8 @@ const getCommands = async (req: Request, res: Response, next: NextFunction) => {
 const getCommand = async (req: Request, res: Response, next: NextFunction) => {
   let name: string = req.params.name;
   let query = await findQuery(
-    `SELECT * FROM commands WHERE Name='${name}' LIMIT 1;`
-  );
+    `SELECT * FROM commands WHERE Name=? LIMIT 1;`
+  , [name]);
 
   return res.status(200).json({
     data: {
@@ -73,7 +73,7 @@ const getOTFCommands = async (
   res: Response,
   next: NextFunction
 ) => {
-  let result = await findQuery("SELECT * FROM otf;");
+  let result = await findQuery("SELECT * FROM otf;", []);
   let commandData: any[] = [];
   result.forEach((cmd: IOTFCommand) => {
     commandData.push({
@@ -95,8 +95,8 @@ const getOTFCommand = async (
 ) => {
   let name: string = req.params.name;
   let query = await findQuery(
-    `SELECT * FROM otf WHERE Name='${name}' LIMIT 1;`
-  );
+    `SELECT * FROM otf WHERE Name=? LIMIT 1;`
+  , [name]);
 
   return res.status(200).json({
     data: {

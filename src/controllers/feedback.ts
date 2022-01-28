@@ -23,7 +23,7 @@ export interface IFeedback {
 }
 
 const getFeedback = async (req: Request, res: Response, next: NextFunction) => {
-  let result = await findQuery("SELECT * FROM suggestions;");
+  let result = await findQuery("SELECT * FROM suggestions;", []);
   let feedbackData: any[] = [];
   result.forEach((user: IFeedback) => {
     feedbackData.push({
@@ -48,8 +48,8 @@ const getFeedbackById = async (
   let id: string = req.params.id;
   console.log(id);
   let query = await findQuery(
-    `SELECT * FROM suggestions WHERE ID='${id}' LIMIT 1;`
-  );
+    `SELECT * FROM suggestions WHERE ID=? LIMIT 1;`
+  , [id]);
 
   return res.status(200).json({
     data: {
