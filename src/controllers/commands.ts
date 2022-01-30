@@ -40,9 +40,9 @@ const getCommands = async (req: Request, res: Response, next: NextFunction) => {
 
 const getCommand = async (req: Request, res: Response, next: NextFunction) => {
   let name: string = req.params.name;
-  let query = await findQuery(
-    `SELECT * FROM commands WHERE Name=? LIMIT 1;`
-  , [name]);
+  let query = await findQuery(`SELECT * FROM commands WHERE Name=? LIMIT 1;`, [
+    name,
+  ]);
 
   return res.status(200).json({
     data: {
@@ -94,9 +94,9 @@ const getOTFCommand = async (
   next: NextFunction
 ) => {
   let name: string = req.params.name;
-  let query = await findQuery(
-    `SELECT * FROM otf WHERE Name=? LIMIT 1;`
-  , [name]);
+  let query = await findQuery(`SELECT * FROM otf WHERE Name=? LIMIT 1;`, [
+    name,
+  ]);
 
   return res.status(200).json({
     data: {

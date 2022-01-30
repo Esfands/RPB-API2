@@ -13,7 +13,9 @@ export interface IEmote {
 const getEmotes = async (req: Request, res: Response, next: NextFunction) => {
   let channel: string = req.params.channel;
   console.log(channel);
-  let result = await findQuery("SELECT * FROM subemotes WHERE Channel=?;", [channel]);
+  let result = await findQuery("SELECT * FROM subemotes WHERE Channel=?;", [
+    channel,
+  ]);
   let emoteData: any[] = [];
   result.forEach((emote: IEmote) => {
     emoteData.push({
@@ -22,7 +24,7 @@ const getEmotes = async (req: Request, res: Response, next: NextFunction) => {
       ID: emote["ID"],
       Tier: emote["Tier"],
       EmoteType: emote["EmoteType"],
-      URL: emote["URL"]
+      URL: emote["URL"],
     });
   });
   return res.status(200).json({

@@ -47,9 +47,9 @@ const getFeedbackById = async (
 ) => {
   let id: string = req.params.id;
   console.log(id);
-  let query = await findQuery(
-    `SELECT * FROM suggestions WHERE ID=? LIMIT 1;`
-  , [id]);
+  let query = await findQuery(`SELECT * FROM suggestions WHERE ID=? LIMIT 1;`, [
+    id,
+  ]);
 
   return res.status(200).json({
     data: {

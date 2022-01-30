@@ -109,6 +109,7 @@ mongoose.connect(URI).then(() => {
             {
               title: notification.event.title,
               category: notification.event.category_name,
+              changedGameAt: new Date()
             }
           ).then((res) => console.log("EsfandTV has updated stream..."));
         }

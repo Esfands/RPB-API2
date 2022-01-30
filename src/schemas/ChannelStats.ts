@@ -6,6 +6,8 @@ export interface IStreamStats extends Document {
   title: string;
   category: string;
   hosting: string;
+  changedGamesAt: Date | string;
+  wentOfflineAt: Date | string;
 }
 
 let StreamStatsSchema = new Schema({
@@ -14,6 +16,8 @@ let StreamStatsSchema = new Schema({
   title: String,
   category: String,
   hosting: String,
+  changedGamesAt: String,
+  wentOfflineAt: String,
 });
 
 export const StreamStat: Model<IStreamStats> = model(
