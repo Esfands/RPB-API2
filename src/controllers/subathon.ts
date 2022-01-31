@@ -9,10 +9,16 @@ export interface SubathonChatter extends Document {
   BitsDonated: number;
 }
 
-/* /subathon/activechatters */
+/* /subathon/chatters */
 const getSubathonMessageStats = async (req: Request, res: Response, next: NextFunction) => {
+  let offset = req.query.offset;
+  let limit: string | number;
+  if (req.query.limit) {
+    limit = parseInt(req.query.limit as string);
+  } else limit = 100;
+
   let result = await findQuery(
-    "SELECT * FROM subathonstats ORDER BY MessageCount DESC;",
+    `SELECT * FROM subathonstats ORDER BY MessageCount DESC LIMIT ${limit} OFFSET ${offset};`,
     []
   );
   let chatterData: any[] = [];
@@ -31,8 +37,14 @@ const getSubathonMessageStats = async (req: Request, res: Response, next: NextFu
 
 /* /subathon/giftedsubs */
 const getSubathonGiftedSubsStats = async (req: Request, res: Response, next: NextFunction) => {
+  let offset = req.query.offset;
+  let limit: string | number;
+  if (req.query.limit) {
+    limit = parseInt(req.query.limit as string);
+  } else limit = 100;
+
   let result = await findQuery(
-    "SELECT * FROM subathonstats ORDER BY GiftedSubs DESC;",
+    `SELECT * FROM subathonstats ORDER BY GiftedSubs DESC LIMIT ${limit} OFFSET ${offset};`,
     []
   );
   let chatterData: any[] = [];
@@ -51,8 +63,14 @@ const getSubathonGiftedSubsStats = async (req: Request, res: Response, next: Nex
 
 /* /subathon/bitsdonated */
 const getSubathonDonatedBitsStats = async (req: Request, res: Response, next: NextFunction) => {
+  let offset = req.query.offset;
+  let limit: string | number;
+  if (req.query.limit) {
+    limit = parseInt(req.query.limit as string);
+  } else limit = 100;
+
   let result = await findQuery(
-    "SELECT * FROM subathonstats ORDER BY BitsDonated DESC;",
+    `SELECT * FROM subathonstats ORDER BY BitsDonated DESC LIMIT ${limit} OFFSET ${offset};`,
     []
   );
   let chatterData: any[] = [];

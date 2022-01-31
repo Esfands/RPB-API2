@@ -92,7 +92,6 @@ mongoose.connect(URI).then(() => {
       if (MESSAGE_TYPE_NOTIFICATION === req.headers[MESSAGE_TYPE]) {
         // TODO: Do something with the data
         console.log(`Event type: ${notification.subscription.type}`);
-        console.log(notification.event);
 
         if (notification.subscription.type === "stream.online") {
           // Stream just went online

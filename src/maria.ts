@@ -9,6 +9,7 @@ export async function findQuery(query: string, values: any[]) {
     let toFetch = await conn.query(query, values);
     data = toFetch;
   } catch (err) {
+    console.log(err);
     throw err;
   } finally {
     if (conn) conn.end();
