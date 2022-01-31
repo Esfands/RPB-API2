@@ -2,6 +2,9 @@
 RetPaladinBot API written in TypeScript
 
 ## Routes
+### Base URL
+`https://api.retpaladinbot.com/`
+
 ### Commands
 Fetch all commands <br/>
 `/commands` 
