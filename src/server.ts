@@ -8,6 +8,7 @@ import routes from "./routes/commands";
 import retfuelRoutes from "./routes/retfuel";
 import feedbackRoutes from "./routes/feedback";
 import emoteRoutes from "./routes/emotes";
+import subathonRoutes from "./routes/subathon";
 import * as crypto from "crypto";
 import mongoose from "mongoose";
 
@@ -75,6 +76,7 @@ mongoose.connect(URI).then(() => {
   router.use("/", retfuelRoutes);
   router.use("/", feedbackRoutes);
   router.use("/", emoteRoutes);
+  router.use("/", subathonRoutes);
 
   /* Event Sub */
   router.post("/eventsub", (req, res) => {
