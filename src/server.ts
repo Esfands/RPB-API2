@@ -9,6 +9,7 @@ import retfuelRoutes from "./routes/retfuel";
 import feedbackRoutes from "./routes/feedback";
 import emoteRoutes from "./routes/emotes";
 import subathonRoutes from "./routes/subathon";
+import twitchRoutes from "./routes/twitch";
 import * as crypto from "crypto";
 import mongoose from "mongoose";
 
@@ -77,6 +78,7 @@ mongoose.connect(URI).then(() => {
   router.use("/", feedbackRoutes);
   router.use("/", emoteRoutes);
   router.use("/", subathonRoutes);
+  router.use("/", twitchRoutes);
 
   /* Event Sub */
   router.post("/eventsub", (req, res) => {
@@ -113,6 +115,10 @@ mongoose.connect(URI).then(() => {
               changedGameAt: new Date()
             }
           ).then((res) => console.log("EsfandTV has updated stream..."));
+        } else if (notification.subscription.type === "channel.prediction.begin") {
+          console.log(notification.event);
+        } else if (notification.subscription.type === "channel.poll.begin") {
+          console.log(notification.event);
         }
 
         res.sendStatus(204);
