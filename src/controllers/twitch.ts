@@ -13,7 +13,7 @@ const twitchTokenCallback = async (req: Request, res: Response, next: NextFuncti
   code = code.replace('/twitch/callback?code=', '');
   code = code.substring(0, code.indexOf("&"));
 
-  let url = `https://id.twitch.tv/oauth2/token?client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=https://api.retpaladinbot.com/auth/twitch/completed`;
+  let url = `https://id.twitch.tv/oauth2/token?client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=https://api.retpaladinbot.com/twitch/completed`;
   let post = await axios({
     method: "POST",
     url: url
