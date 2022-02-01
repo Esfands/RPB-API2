@@ -11,7 +11,7 @@ export interface SubathonChatter extends Document {
 
 /* /subathon/chatters */
 const getSubathonMessageStats = async (req: Request, res: Response, next: NextFunction) => {
-  let offset = req.query.offset;
+  let offset = (req.query.offset) ? req.query.offset : 1;
   let limit: string | number;
   if (req.query.limit) {
     limit = parseInt(req.query.limit as string);
