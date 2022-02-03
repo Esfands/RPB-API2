@@ -75,4 +75,24 @@ const getTwitchId = async (req: Request, res: Response, next: NextFunction) => {
   });
 }
 
-export default { getTwitchToken, twitchTokenCallback, twitchTokenDone, getTwitchId };
+const getTwitchChannelEmotes = async (req: Request, res: Response, next: NextFunction) => {
+  let query = req.query.id as string;
+
+  let cid = process.env.YBD_ID as string;
+  let token = process.env.YBD_TOKEN as string;
+
+  let emoteData = await axios({
+    method: "GET",
+    url: `https://api.twitch.tv/helix/chat/emotes?broadcaster_id=${query}`,
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Client-Id": cid
+    }
+  });
+
+  return res.status(200).json({
+    data: emoteData.data["data"]
+  });
+}
+
+export default { getTwitchToken, twitchTokenCallback, twitchTokenDone, getTwitchId, getTwitchChannelEmotes };
