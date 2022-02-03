@@ -20,7 +20,7 @@ const twitchTokenCallback = async (req: Request, res: Response, next: NextFuncti
   });
 
   let uid = process.env.CLIENT_ID as string;
-   let getUser = await axios({
+  let getUser = await axios({
     method: "GET",
     url: "https://api.twitch.tv/helix/users",
     headers: {
@@ -54,7 +54,7 @@ const getTwitchId = async (req: Request, res: Response, next: NextFunction) => {
 
   let cid = process.env.YBD_ID as string;
   let token = process.env.YBD_TOKEN as string;
-  let endPoint = Number(query) ?  `id=${query}` : `login=${query}`;
+  let endPoint = Number(query) ? `id=${query}` : `login=${query}`;
 
   let nameSearch = await axios({
     method: "GET",
@@ -75,24 +75,49 @@ const getTwitchId = async (req: Request, res: Response, next: NextFunction) => {
   });
 }
 
-const getTwitchChannelEmotes = async (req: Request, res: Response, next: NextFunction) => {
-  let query = req.query.id as string;
-
+async function getTwitchEmotes(id: number) {
   let cid = process.env.YBD_ID as string;
   let token = process.env.YBD_TOKEN as string;
 
   let emoteData = await axios({
     method: "GET",
-    url: `https://api.twitch.tv/helix/chat/emotes?broadcaster_id=${query}`,
+    url: `https://api.twitch.tv/helix/chat/emotes?broadcaster_id=${id}`,
     headers: {
       "Authorization": "Bearer " + token,
       "Client-Id": cid
     }
   });
 
-  return res.status(200).json({
-    data: emoteData.data["data"]
-  });
+  return emoteData.data;
+}
+
+const getTwitchChannelEmotes = async (req: Request, res: Response, next: NextFunction) => {
+  let query = req.query.id as string;
+
+  let cid = process.env.YBD_ID as string;
+  let token = process.env.YBD_TOKEN as string;
+
+  if (Number(query)) {
+    let emoteData = await getTwitchEmotes(parseInt(query));
+    return res.status(200).json({
+      data: emoteData.data
+    });
+  } else {
+    let endPoint = Number(query) ? `id=${query}` : `login=${query}`;
+    let nameSearch = await axios({
+      method: "GET",
+      url: `https://api.twitch.tv/helix/users?${endPoint}`,
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Client-Id": cid
+      }
+    });
+
+    let emoteData = await getTwitchEmotes(parseInt(nameSearch.data["data"][0]["id"]));
+    return res.status(200).json({
+      data: emoteData.data
+    });
+  }
 }
 
 export default { getTwitchToken, twitchTokenCallback, twitchTokenDone, getTwitchId, getTwitchChannelEmotes };
