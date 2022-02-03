@@ -28,16 +28,17 @@ export function checkForKey(req: Request, res: Response) {
   }
 }
 
-export async function updateOne(query: string) {
+export async function updateOne(query: string, values: any[]) {
   let conn;
   let data;
   try {
     conn = await pool.getConnection();
-    const rows = await conn.query(query);
+    const rows = await conn.query(query, values);
     if (rows) {
       data = rows;
     } else data = false;
   } catch (err) {
+    console.log(err);
     throw err;
   } finally {
     if (conn) {

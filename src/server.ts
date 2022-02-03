@@ -12,11 +12,13 @@ import subathonRoutes from "./routes/subathon";
 import twitchRoutes from "./routes/twitch";
 import * as crypto from "crypto";
 import mongoose from "mongoose";
+import * as WebSocket from 'ws';
 
 // MariaDB setup
 import mariadb from "mariadb";
-import { updateOne } from "./maria";
+import { insertRow, updateOne } from "./maria";
 import { StreamStat } from "./schemas/ChannelStats";
+import { Events, EventType, sendWSPayload, Status } from "./socket";
 export const pool = mariadb.createPool({
   host: process.env.MARIA_HOST,
   user: process.env.MARIA_USER,
@@ -42,6 +44,18 @@ mongoose.connect(URI).then(() => {
   const MESSAGE_TYPE_REVOCATION = "revocation";
 
   const HMAC_PREFIX = "sha256=";
+
+  /* Server */
+  const httpServer = http.createServer(router);
+  let server = httpServer;
+
+/*   const wss = new WebSocket.Server({ server });
+  let wsClients = [] as any;
+  wss.on('connection', (ws: WebSocket) => {
+    wsClients.push(ws);
+    console.log("added");
+  }); */
+
 
   /* Logging */
   router.use(morgan("dev"));
@@ -81,7 +95,7 @@ mongoose.connect(URI).then(() => {
   router.use("/", twitchRoutes);
 
   /* Event Sub */
-  router.post("/eventsub", (req, res) => {
+  router.post("/eventsub", async (req, res) => {
     let secret = getSecret();
     let message = getHmacMessage(req);
     let hmac = HMAC_PREFIX + getHmac(secret, message);
@@ -115,10 +129,44 @@ mongoose.connect(URI).then(() => {
               changedGameAt: new Date()
             }
           ).then((res) => console.log("EsfandTV has updated stream..."));
+
         } else if (notification.subscription.type === "channel.prediction.begin") {
-          console.log(notification.event);
+          let info = notification.event;
+          let values = [info["id"], info["broadcaster_user_login"], "open", info["title"], JSON.stringify(info["outcomes"]), new Date(info["started_at"]), new Date(info["locks_at"])];
+          await insertRow(`INSERT INTO predictions (ID, Broadcaster, Status, Title, OutComes, StartedAt, LocksAt) VALUES (?, ?, ?, ?, ?, ?, ?)`, values);
+
+
+          /* sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_BEGIN, Status.OPEN, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locks_at"] }); */
+
+        } else if (notification.subscription.type === "channel.prediction.lock") {
+          let info = notification.event;
+          let values = ['locked', JSON.stringify(info["outcomes"]), new Date(info["locked_at"]), info["id"]];
+          await updateOne(`UPDATE predictions SET Status=?, Outcomes=?, LocksAt=? WHERE ID=?;`, values);
+
+/*           sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_LOCK, Status.LOCKED, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locked_at"] }); */
+
+        } else if (notification.subscription.type === "channel.prediction.end") {
+          let info = notification.event;
+          let values = ['closed', JSON.stringify(info["outcomes"]), new Date(info["ended_at"]), info["id"]];
+          await updateOne(`UPDATE predictions SET Status=?, Outcomes=?, LocksAt=? WHERE ID=?`, values);
+
+/*           sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_END, Status.CLOSED, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locked_at"] }); */
+
         } else if (notification.subscription.type === "channel.poll.begin") {
-          console.log(notification.event);
+          let info = notification.event;
+          let values = [info["id"], info["broadcaster_user_login"], "open", info["title"], JSON.stringify(info["choices"]), JSON.stringify(info["bits_voting"]), JSON.stringify(info["channel_points_voting"]), new Date(info["started_at"]), new Date(info["ends_at"])];
+          await insertRow(`INSERT INTO polls (ID, Broadcaster, Active, Title, Choices, BitsVoting, ChannelPointsVoting, StartedAt, EndsAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`, values)
+          
+          let payload: object = { choices: info["choices"], bits: info["bits_voting"], points: info["channel_points_voting"] };
+/*           sendWSPayload(wsClients, EventType.POLL, Events.POLL_BEGIN, Status.OPEN, info["id"], info["title"], payload, { started: info["started_at"], ends: info["ends_at"] }); */
+
+        } else if (notification.subscription.type === "channel.poll.end") {
+          let info = notification.event;
+          await updateOne(`UPDATE polls SET Active=?, Choices=?, EndsAt=? WHERE ID=?;`, ['closed', JSON.stringify(info["choices"]), new Date(info["ended_at"]), info["id"]]);
+          console.log(info);
+
+          let payload: object = { choices: info["choices"], bits: info["bits_voting"], points: info["channel_points_voting"] };
+          /* sendWSPayload(wsClients, EventType.POLL, Events.POLL_END, Status.CLOSED, info["id"], info["title"], payload, { started: info["started_at"], ends: info["ends_at"] }); */
         }
 
         res.sendStatus(204);
@@ -182,8 +230,7 @@ mongoose.connect(URI).then(() => {
     });
   });
 
-  /* Server */
-  const httpServer = http.createServer(router);
+
   const PORT: any = process.env.PORT ?? 4500;
   httpServer.listen(PORT, () =>
     console.log(`The server is running on port ${PORT}`)

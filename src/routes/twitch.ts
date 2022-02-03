@@ -5,5 +5,6 @@ const router = express.Router();
 router.get("/twitch/auth", controller.getTwitchToken);
 router.get("/twitch/callback", controller.twitchTokenCallback);
 router.get("/twitch/completed", controller.twitchTokenDone);
+router.get("/twitch/id", controller.getTwitchId);
 
 export = router;

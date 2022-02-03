@@ -33,7 +33,7 @@ const twitchTokenCallback = async (req: Request, res: Response, next: NextFuncti
   let username = getUser.data["data"][0]["login"];
   let searchUser = await findOne('tokens', `Username='${username}'`);
   if (searchUser) {
-    await updateOne(`UPDATE tokens SET AccessToken='${post.data["access_token"]}', RefreshToken='${post.data["refresh_token"]}', Scopes='${JSON.stringify(post.data["scope"])}' WHERE Username='${username}';`);
+    await updateOne(`UPDATE tokens SET AccessToken='${post.data["access_token"]}', RefreshToken='${post.data["refresh_token"]}', Scopes='${JSON.stringify(post.data["scope"])}' WHERE Username='${username}';`, []);
   } else {
     await insertRow(`INSERT INTO tokens (Username, AccessToken, RefreshToken, Scopes) VALUES (?, ?, ?, ?)`, [username, post.data["access_token"], post.data["refresh_token"], JSON.stringify(post.data["scope"])]);
   }
@@ -49,4 +49,30 @@ const twitchTokenDone = async (req: Request, res: Response, next: NextFunction) 
   });
 }
 
-export default { getTwitchToken, twitchTokenCallback, twitchTokenDone };
+const getTwitchId = async (req: Request, res: Response, next: NextFunction) => {
+  let query = req.query.user as string;
+
+  let cid = process.env.YBD_ID as string;
+  let token = process.env.YBD_TOKEN as string;
+  let endPoint = Number(query) ?  `id=${query}` : `login=${query}`;
+
+  let nameSearch = await axios({
+    method: "GET",
+    url: `https://api.twitch.tv/helix/users?${endPoint}`,
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Client-Id": cid
+    }
+  });
+
+  let userData = nameSearch.data["data"][0]
+  let result = {
+    username: userData["login"],
+    id: userData["id"]
+  }
+  return res.status(200).json({
+    data: result
+  });
+}
+
+export default { getTwitchToken, twitchTokenCallback, twitchTokenDone, getTwitchId };
