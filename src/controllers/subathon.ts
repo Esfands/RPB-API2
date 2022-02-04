@@ -87,5 +87,24 @@ const getSubathonDonatedBitsStats = async (req: Request, res: Response, next: Ne
   });
 };
 
+const getSubathonStartDate = async (req: Request, res: Response, next: NextFunction) => {
+  let year = new Date().getFullYear();
+  let difference = +new Date(`02/17/${year}`) - +new Date();
 
-export default { getSubathonMessageStats, getSubathonGiftedSubsStats, getSubathonDonatedBitsStats };
+  let timeLeft = {};
+
+  if (difference > 0) {
+    timeLeft = {
+      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((difference / 1000 / 60) % 60),
+      seconds: Math.floor((difference / 1000) % 60)
+    }
+  }
+
+  return res.status(200).json({
+    data: timeLeft
+  });
+}
+
+export default { getSubathonMessageStats, getSubathonGiftedSubsStats, getSubathonDonatedBitsStats, getSubathonStartDate };

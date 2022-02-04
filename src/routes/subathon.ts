@@ -5,5 +5,6 @@ const router = express.Router();
 router.get("/subathon/chatters", controller.getSubathonMessageStats);
 router.get("/subathon/giftedsubs", controller.getSubathonGiftedSubsStats);
 router.get("/subathon/bitsdonated", controller.getSubathonDonatedBitsStats);
+router.get("/subathon/countdown", controller.getSubathonStartDate);
 
 export = router;

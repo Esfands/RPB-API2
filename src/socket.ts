@@ -1,34 +1,3 @@
-/* 
-
-  EventType: String 
-          "prediction" || "poll"
-  
-  Event: String
-         "channel.prediction.begin" 
-         "channel.prediction.lock"
-         "channel.prediction.end"
-         "channel.poll.begin"
-         "channel.poll.end"
-  
-  Status: String
-          Open(prediction/poll)
-          Locked(prediction)
-          Closed(prediction/poll)
-  
-  ID: Prediction/Poll
-  
-  Title:   String
-           Prediction/Poll
-  
-  Payload: Object
-           Predictions(Outcomes)
-           Choices
-  
-  Dates: Object
-         Predictions(StartedAt, LockedAt)
-         Polls (StartedAt, LockedAt) 
-*/
-
 export enum EventType {
   PREDICTION = "prediction",
   POLL = "poll"
