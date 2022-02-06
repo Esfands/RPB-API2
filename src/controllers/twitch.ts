@@ -66,10 +66,18 @@ const getTwitchId = async (req: Request, res: Response, next: NextFunction) => {
   });
 
   let userData = nameSearch.data["data"][0]
+
+  if (!userData) {
+    return res.status(404).json({
+      data: `${query} not found`
+    });
+  }
+
   let result = {
     username: userData["login"],
     id: userData["id"]
   }
+
   return res.status(200).json({
     data: result
   });
@@ -113,10 +121,16 @@ const getTwitchChannelEmotes = async (req: Request, res: Response, next: NextFun
       }
     });
 
-    let emoteData = await getTwitchEmotes(parseInt(nameSearch.data["data"][0]["id"]));
-    return res.status(200).json({
-      data: emoteData.data
-    });
+    if (!nameSearch.data["data"][0]) {
+      return res.status(404).json({
+        data: `${query} not found`
+      });
+    } else {
+      let emoteData = await getTwitchEmotes(parseInt(nameSearch.data["data"][0]["id"]));
+      return res.status(200).json({
+        data: emoteData.data
+      });
+    }
   }
 }
 

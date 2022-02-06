@@ -50,12 +50,39 @@ mongoose.connect(URI).then(() => {
   let server = httpServer;
 
   const wss = new WebSocket.Server({ server });
-  let wsClients = [] as any;
-  wss.on('connection', (ws: WebSocket) => {
+
+  const heartbeat = (ws: any) => {
+    ws.isAlive = true
+  }
+
+  const ping = (ws: any) => {
+    // do something
+  }
+
+  let wsClients: any = [];
+  wss.on('connection', (ws: any) => {
+    ws.isAlive = true;
+    ws.on('pong', () => { heartbeat(ws) })
     wsClients.push(ws);
-    console.log("added");
   });
 
+  const wsInterval = setInterval(() => {
+    wss.clients.forEach((ws: any) => {
+      if (ws.isAlive === false) {
+        return ws.terminate();
+      }
+
+      ws.isAlive = false;
+      ws.ping(() => { ping(ws) })
+    })
+  }, 30000);
+
+  wss.on("close", (ws: WebSocket) => {
+    let index = wsClients.indeof(ws);
+    if (index > -1) {
+      wsClients.splice(index, 1);
+    }
+  });
 
   /* Logging */
   router.use(morgan("dev"));
@@ -115,11 +142,14 @@ mongoose.connect(URI).then(() => {
             { type: "esfandtv" },
             { status: "live" }
           ).then((res) => console.log("EsfandTV just went live..."));
+
+          await insertRow(`INSERT INTO hoursstreamed (Started) VALUES (?)`, [new Date()]);
         } else if (notification.subscription.type === "stream.offline") {
           StreamStat.findOneAndUpdate(
             { type: "esfandtv" },
             { status: "offline", hosting: "", wentOfflineAt: new Date() }
           ).then((res) => console.log("EsfandTV just went offline..."));
+
         } else if (notification.subscription.type === "channel.update") {
           StreamStat.findOneAndUpdate(
             { type: "esfandtv" },
@@ -134,34 +164,34 @@ mongoose.connect(URI).then(() => {
           let info = notification.event;
           let values = [info["id"], info["broadcaster_user_login"], "open", info["title"], JSON.stringify(info["outcomes"]), new Date(info["started_at"]), new Date(info["locks_at"])];
           await insertRow(`INSERT INTO predictions (ID, Broadcaster, Status, Title, OutComes, StartedAt, LocksAt) VALUES (?, ?, ?, ?, ?, ?, ?)`, values);
-          /* sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_BEGIN, Status.OPEN, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locks_at"] }); */
+          sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_BEGIN, Status.OPEN, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locks_at"] });
 
         } else if (notification.subscription.type === "channel.prediction.lock") {
           let info = notification.event;
           let values = ['locked', JSON.stringify(info["outcomes"]), new Date(info["locked_at"]), info["id"]];
           await updateOne(`UPDATE predictions SET Status=?, Outcomes=?, LocksAt=? WHERE ID=?;`, values);
-          /* sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_LOCK, Status.LOCKED, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locked_at"] }); */
+          sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_LOCK, Status.LOCKED, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locked_at"] });
 
         } else if (notification.subscription.type === "channel.prediction.end") {
           let info = notification.event;
           let values = ['closed', JSON.stringify(info["outcomes"]), new Date(info["ended_at"]), info["id"]];
           await updateOne(`UPDATE predictions SET Status=?, Outcomes=?, LocksAt=? WHERE ID=?`, values);
-          /* sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_END, Status.CLOSED, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locked_at"] }); */
+          sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_END, Status.CLOSED, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locked_at"] });
 
         } else if (notification.subscription.type === "channel.poll.begin") {
           let info = notification.event;
           let values = [info["id"], info["broadcaster_user_login"], "open", info["title"], JSON.stringify(info["choices"]), JSON.stringify(info["bits_voting"]), JSON.stringify(info["channel_points_voting"]), new Date(info["started_at"]), new Date(info["ends_at"])];
           await insertRow(`INSERT INTO polls (ID, Broadcaster, Active, Title, Choices, BitsVoting, ChannelPointsVoting, StartedAt, EndsAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`, values)
-          
+
           let payload: object = { choices: info["choices"], bits: info["bits_voting"], points: info["channel_points_voting"] };
-          /* sendWSPayload(wsClients, EventType.POLL, Events.POLL_BEGIN, Status.OPEN, info["id"], info["title"], payload, { started: info["started_at"], ends: info["ends_at"] }); */
+          sendWSPayload(wsClients, EventType.POLL, Events.POLL_BEGIN, Status.OPEN, info["id"], info["title"], payload, { started: info["started_at"], ends: info["ends_at"] });
 
         } else if (notification.subscription.type === "channel.poll.end") {
           let info = notification.event;
-          /* await updateOne(`UPDATE polls SET Active=?, Choices=?, EndsAt=? WHERE ID=?;`, ['closed', JSON.stringify(info["choices"]), new Date(info["ended_at"]), info["id"]]); */
+          await updateOne(`UPDATE polls SET Active=?, Choices=?, EndsAt=? WHERE ID=?;`, ['closed', JSON.stringify(info["choices"]), new Date(info["ended_at"]), info["id"]]);
 
           let payload: object = { choices: info["choices"], bits: info["bits_voting"], points: info["channel_points_voting"] };
-          /* sendWSPayload(wsClients, EventType.POLL, Events.POLL_END, Status.CLOSED, info["id"], info["title"], payload, { started: info["started_at"], ends: info["ends_at"] }); */
+          sendWSPayload(wsClients, EventType.POLL, Events.POLL_END, Status.CLOSED, info["id"], info["title"], payload, { started: info["started_at"], ends: info["ends_at"] });
         }
 
         res.sendStatus(204);
