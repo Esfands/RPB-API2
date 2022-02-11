@@ -49,39 +49,28 @@ mongoose.connect(URI).then(() => {
   const httpServer = http.createServer(router);
   let server = httpServer;
 
-  const wss = new WebSocket.Server({ server });
+  const wss = new WebSocket.Server({ server: server, path: "/esfandevents" });
 
-  const heartbeat = (ws: any) => {
-    ws.isAlive = true
+  let wsClients: Map<any, any> = new Map();
+
+  function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
   }
 
-  const ping = (ws: any) => {
-    // do something
-  }
-
-  let wsClients: any = [];
   wss.on('connection', (ws: any) => {
-    ws.isAlive = true;
-    ws.on('pong', () => { heartbeat(ws) })
-    wsClients.push(ws);
+    const id = uuidv4();
+    const metadata = { id };
+
+    wsClients.set(ws, metadata);
+    console.log(wsClients.size);
   });
 
-  const wsInterval = setInterval(() => {
-    wss.clients.forEach((ws: any) => {
-      if (ws.isAlive === false) {
-        return ws.terminate();
-      }
-
-      ws.isAlive = false;
-      ws.ping(() => { ping(ws) })
-    })
-  }, 30000);
-
-  wss.on("close", (ws: WebSocket) => {
-    let index = wsClients.indeof(ws);
-    if (index > -1) {
-      wsClients.splice(index, 1);
-    }
+  wss.on('close', (ws: any) => {
+    wsClients.delete(ws);
+    console.log(wsClients.size);
   });
 
   /* Logging */

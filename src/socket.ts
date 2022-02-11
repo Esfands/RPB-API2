@@ -27,7 +27,7 @@ interface PayloadObject {
   Dates: object;
 }
 
-export function sendWSPayload(Clients: any[], EventType: EventType, Event: Events, Status: Status, ID: string, Title: string, Payload: object, Dates: object) {
+export function sendWSPayload(Clients: Map<any, any>, EventType: EventType, Event: Events, Status: Status, ID: string, Title: string, Payload: object, Dates: object) {
   
   let PayloadToSend: PayloadObject = {
     EventType: EventType,
@@ -39,7 +39,8 @@ export function sendWSPayload(Clients: any[], EventType: EventType, Event: Event
     Dates: Dates
   }
 
-  Clients.forEach((user: WebSocket) => {
-    user.send(JSON.stringify(PayloadToSend))
+  let clients = [...Clients.keys()];
+  clients.forEach((client: any) => {
+    client.send(JSON.stringify(PayloadToSend));
   });
 }
