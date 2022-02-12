@@ -49,7 +49,7 @@ mongoose.connect(URI).then(() => {
   const httpServer = http.createServer(router);
   let server = httpServer;
 
-  const wss = new WebSocket.Server({ server: server, path: "/esfandevents" });
+  const wss = new WebSocket.Server({ server: server });
 
   let wsClients: object[] = [];
 
@@ -169,6 +169,9 @@ mongoose.connect(URI).then(() => {
           await insertRow(`INSERT INTO predictions (ID, Broadcaster, Status, Title, OutComes, StartedAt, LocksAt) VALUES (?, ?, ?, ?, ?, ?, ?)`, values);
           //console.log(info);
           let notificationLayout = await getGameLayout();
+          console.log(
+            EventType.PREDICTION, Events.PREDICTION_BEGIN, Status.OPEN, notificationLayout, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locks_at"] }
+          )
           sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_BEGIN, Status.OPEN, notificationLayout, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locks_at"] });
 
         } else if (notification.subscription.type === "channel.prediction.progress") {
