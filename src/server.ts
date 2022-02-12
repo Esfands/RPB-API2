@@ -153,18 +153,21 @@ mongoose.connect(URI).then(() => {
           let info = notification.event;
           let values = [info["id"], info["broadcaster_user_login"], "open", info["title"], JSON.stringify(info["outcomes"]), new Date(info["started_at"]), new Date(info["locks_at"])];
           await insertRow(`INSERT INTO predictions (ID, Broadcaster, Status, Title, OutComes, StartedAt, LocksAt) VALUES (?, ?, ?, ?, ?, ?, ?)`, values);
+          console.log(info);
           sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_BEGIN, Status.OPEN, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locks_at"] });
 
         } else if (notification.subscription.type === "channel.prediction.lock") {
           let info = notification.event;
           let values = ['locked', JSON.stringify(info["outcomes"]), new Date(info["locked_at"]), info["id"]];
           await updateOne(`UPDATE predictions SET Status=?, Outcomes=?, LocksAt=? WHERE ID=?;`, values);
+          console.log(info);
           sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_LOCK, Status.LOCKED, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locked_at"] });
 
         } else if (notification.subscription.type === "channel.prediction.end") {
           let info = notification.event;
           let values = ['closed', JSON.stringify(info["outcomes"]), new Date(info["ended_at"]), info["id"]];
           await updateOne(`UPDATE predictions SET Status=?, Outcomes=?, LocksAt=? WHERE ID=?`, values);
+          console.log(info);
           sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_END, Status.CLOSED, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locked_at"] });
 
         } else if (notification.subscription.type === "channel.poll.begin") {
