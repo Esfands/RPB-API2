@@ -51,7 +51,7 @@ mongoose.connect(URI).then(() => {
 
   const wss = new WebSocket.Server({ server: server, path: "/esfandevents" });
 
-  let wsClients: Map<any, any> = new Map();
+  let wsClients: object[] = [];
 
   function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -62,15 +62,29 @@ mongoose.connect(URI).then(() => {
 
   wss.on('connection', (ws: any) => {
     const id = uuidv4();
-    const metadata = { id };
 
-    wsClients.set(ws, metadata);
-    console.log(wsClients.size);
+    console.log("Socket with ID " + id + " has been opened");
+    wsClients.push({id: id, socket: ws});
+  });
+
+  function pingClients() {
+    wsClients.forEach((object: any) => {
+      if (object["socket"].readyState === WebSocket.CLOSED) {
+        let ind = wsClients.findIndex((obj: any) => obj.id === object["id"]);
+        wsClients.splice(ind, 1);
+        console.log("Socket with ID " + object["id"] + " has been closed");
+      }
+    });
+  }
+
+  setInterval(pingClients, 300000);
+
+  wss.addListener("close", function (event: any) {
+    console.log("Client disconnected");
   });
 
   wss.on('close', (ws: any) => {
-    wsClients.delete(ws);
-    console.log(wsClients.size);
+    console.log("Websockets closed");
   });
 
   /* Logging */
