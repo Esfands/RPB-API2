@@ -16,9 +16,9 @@ import * as WebSocket from 'ws';
 
 // MariaDB setup
 import mariadb from "mariadb";
-import { insertRow, updateOne } from "./maria";
+import { findOne, insertRow, updateOne } from "./maria";
 import { StreamStat } from "./schemas/ChannelStats";
-import { Events, EventType, sendWSPayload, Status } from "./socket";
+import { Events, EventType, getGameLayout, Layout, sendWSPayload, Status } from "./socket";
 export const pool = mariadb.createPool({
   host: process.env.MARIA_HOST,
   user: process.env.MARIA_USER,
@@ -167,22 +167,30 @@ mongoose.connect(URI).then(() => {
           let info = notification.event;
           let values = [info["id"], info["broadcaster_user_login"], "open", info["title"], JSON.stringify(info["outcomes"]), new Date(info["started_at"]), new Date(info["locks_at"])];
           await insertRow(`INSERT INTO predictions (ID, Broadcaster, Status, Title, OutComes, StartedAt, LocksAt) VALUES (?, ?, ?, ?, ?, ?, ?)`, values);
-          console.log(info);
-          sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_BEGIN, Status.OPEN, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locks_at"] });
+          //console.log(info);
+          let notificationLayout = await getGameLayout();
+          sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_BEGIN, Status.OPEN, notificationLayout, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locks_at"] });
+
+        } else if (notification.subscription.type === "channel.prediction.progress") {
+          let info = notification.event;
+          let notificationLayout = await getGameLayout();
+          sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_PROGRESS, Status.OPEN, notificationLayout, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locks_at"] });
 
         } else if (notification.subscription.type === "channel.prediction.lock") {
           let info = notification.event;
           let values = ['locked', JSON.stringify(info["outcomes"]), new Date(info["locked_at"]), info["id"]];
           await updateOne(`UPDATE predictions SET Status=?, Outcomes=?, LocksAt=? WHERE ID=?;`, values);
           console.log(info);
-          sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_LOCK, Status.LOCKED, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locked_at"] });
+          let notificationLayout = await getGameLayout();
+          sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_LOCK, Status.LOCKED, notificationLayout, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locked_at"] });
 
         } else if (notification.subscription.type === "channel.prediction.end") {
           let info = notification.event;
           let values = ['closed', JSON.stringify(info["outcomes"]), new Date(info["ended_at"]), info["id"]];
           await updateOne(`UPDATE predictions SET Status=?, Outcomes=?, LocksAt=? WHERE ID=?`, values);
           console.log(info);
-          sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_END, Status.CLOSED, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locked_at"] });
+          let notificationLayout = await getGameLayout();
+          sendWSPayload(wsClients, EventType.PREDICTION, Events.PREDICTION_END, Status.CLOSED, notificationLayout, info["id"], info["title"], info["outcomes"], { started: info["started_at"], ends: info["locked_at"] });
 
         } else if (notification.subscription.type === "channel.poll.begin") {
           let info = notification.event;
@@ -190,14 +198,22 @@ mongoose.connect(URI).then(() => {
           await insertRow(`INSERT INTO polls (ID, Broadcaster, Active, Title, Choices, BitsVoting, ChannelPointsVoting, StartedAt, EndsAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`, values)
 
           let payload: object = { choices: info["choices"], bits: info["bits_voting"], points: info["channel_points_voting"] };
-          sendWSPayload(wsClients, EventType.POLL, Events.POLL_BEGIN, Status.OPEN, info["id"], info["title"], payload, { started: info["started_at"], ends: info["ends_at"] });
+          let notificationLayout = await getGameLayout();
+          sendWSPayload(wsClients, EventType.POLL, Events.POLL_BEGIN, Status.OPEN, notificationLayout, info["id"], info["title"], payload, { started: info["started_at"], ends: info["ends_at"] });
+
+        } else if (notification.subscription.type === "channel.poll.progress") {
+          let info = notification.event;
+          let payload: object = { choices: info["choices"], bits: info["bits_voting"], points: info["channel_points_voting"] };
+          let notificationLayout = await getGameLayout();
+          sendWSPayload(wsClients, EventType.POLL, Events.POLL_PROGRESS, Status.OPEN, notificationLayout, info["id"], info["title"], payload, { started: info["started_at"], ends: info["ends_at"] });
 
         } else if (notification.subscription.type === "channel.poll.end") {
           let info = notification.event;
           await updateOne(`UPDATE polls SET Active=?, Choices=?, EndsAt=? WHERE ID=?;`, ['closed', JSON.stringify(info["choices"]), new Date(info["ended_at"]), info["id"]]);
 
           let payload: object = { choices: info["choices"], bits: info["bits_voting"], points: info["channel_points_voting"] };
-          sendWSPayload(wsClients, EventType.POLL, Events.POLL_END, Status.CLOSED, info["id"], info["title"], payload, { started: info["started_at"], ends: info["ends_at"] });
+          let notificationLayout = await getGameLayout();
+          sendWSPayload(wsClients, EventType.POLL, Events.POLL_END, Status.CLOSED, notificationLayout, info["id"], info["title"], payload, { started: info["started_at"], ends: info["ends_at"] });
         }
 
         res.sendStatus(204);
