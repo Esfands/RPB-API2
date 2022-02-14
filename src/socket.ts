@@ -23,14 +23,14 @@ export enum Status {
 }
 
 interface PayloadObject {
-  EventType: EventType;
-  Event: Events;
-  Status: Status;
-  Format: Layout;
-  ID: string;
-  Title: string;
-  Payload: object;
-  Dates: object;
+  eventType: EventType;
+  event: Events;
+  status: Status;
+  format: Layout;
+  id: string;
+  title: string;
+  payload: object;
+  dates: object;
 }
 
 export enum Layout {
@@ -38,17 +38,17 @@ export enum Layout {
   COMPACT = "compact"
 }
 
-export function sendWSPayload(Clients: object[], EventType: EventType, Event: Events, Status: Status, Format: Layout, ID: string, Title: string, Payload: object, Dates: object) {
+export function sendWSPayload(Clients: object[], eventType: EventType, event: Events, status: Status, format: Layout, id: string, title: string, payload: object, dates: object) {
   
   let PayloadToSend: PayloadObject = {
-    EventType: EventType,
-    Event: Event,
-    Status: Status,
-    Format: Format,
-    ID: ID,
-    Title: Title,
-    Payload: Payload,
-    Dates: Dates
+    eventType: eventType,
+    event: event,
+    status: status,
+    format: format,
+    id: id,
+    title: title,
+    payload: payload,
+    dates: dates
   }
 
   let clients = [...Clients.keys()];
@@ -60,6 +60,6 @@ export function sendWSPayload(Clients: object[], EventType: EventType, Event: Ev
 // Get current game category
 export async function getGameLayout() {
   let gQuery = await StreamStat.findOne({ type: "esfandtv" });
-  let query = await findOne(`alertsettings`, `Game='${gQuery!["category"]}'`);
-  return (query) ? query["Format"] : Layout.REGULAR;
+  let query = await findOne(`alertsettings`, `Game='${gQuery!.category}'`);
+  return (query) ? query.Format : Layout.REGULAR;
 }
