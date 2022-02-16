@@ -1,9 +1,9 @@
 import { WebSocketServer } from "ws";
 
-export default (expressServer: any, connections: any) => {
+export default (httpsServer: any, connections: any) => {
   const websocketServer = new WebSocketServer({ noServer: true });
 
-  expressServer.on('upgrade', (request: any, socket: any, head: any) => {
+  httpsServer.on('upgrade', (request: any, socket: any, head: any) => {
     websocketServer.handleUpgrade(request, socket, head, (ws) => {
       websocketServer.emit('connection', ws, request);
     });
@@ -22,5 +22,5 @@ export default (expressServer: any, connections: any) => {
     });
   });
 
-  return expressServer;
+  return httpsServer;
 };
