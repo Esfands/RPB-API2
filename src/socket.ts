@@ -62,9 +62,8 @@ export function sendWSPayload(
   };
 
   // TODO: If clients is empty, return and don't send the payload.
-
-  let clients = [...Clients.keys()];
-  clients.forEach((client: any) => {
+  if (Clients.length === 0) return console.log("No clients to send payload to.");
+  Clients.forEach((client: any) => {
     client.send(JSON.stringify(PayloadToSend));
   });
 }
