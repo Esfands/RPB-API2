@@ -1,6 +1,6 @@
 import { WebSocketServer } from "ws";
 
-export default (expressServer: any, connections: any) => {
+export default (expressServer: any, wsClients: any) => {
   const websocketServer = new WebSocketServer({ noServer: true });
 
   expressServer.on("upgrade", (request: any, socket: any, head: any) => {
@@ -12,13 +12,13 @@ export default (expressServer: any, connections: any) => {
   websocketServer.on("connection", (connection) => {
     console.log("WebSocket connection opened");
 
-    connections.push(connection);
+    wsClients.push(connection);
 
     connection.on("close", () => {
       console.log("WebSocket connection closed");
 
-      const connectionIdx = connections.indexOf(connection);
-      connections.splice(connectionIdx, 1);
+      const connectionIdx = wsClients.indexOf(connection);
+      wsClients.splice(connectionIdx, 1);
     });
   });
 
