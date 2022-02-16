@@ -53,22 +53,26 @@ export async function findOne(table: string, toSearch: string) {
   let data;
   try {
     conn = await pool.getConnection();
-    let rows = await conn.query(`SELECT * FROM ${table} WHERE ${toSearch} LIMIT 1;`);
+    let rows = await conn.query(
+      `SELECT * FROM ${table} WHERE ${toSearch} LIMIT 1;`
+    );
     if (rows.length) {
       data = rows[0];
     } else data = false;
   } catch (err) {
     throw err;
   } finally {
-    if (conn) conn.end()
+    if (conn) conn.end();
     return data;
   }
 }
 
 export function insertRow(query: string, values: any[]) {
-  pool.getConnection()
-    .then(conn => {
-      conn.query(query, values)
+  pool
+    .getConnection()
+    .then((conn) => {
+      conn
+        .query(query, values)
         .then((rows) => {
           if (rows.length) {
             console.log(rows, values);
@@ -80,12 +84,13 @@ export function insertRow(query: string, values: any[]) {
         .then((res) => {
           conn.end();
         })
-        .catch(err => {
+        .catch((err) => {
           //handle error
-          console.log(err)
+          console.log(err);
           conn.end();
-        })
-    }).catch(err => {
+        });
+    })
+    .catch((err) => {
       //not connected
       console.log("not connected");
     });

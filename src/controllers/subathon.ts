@@ -10,8 +10,12 @@ export interface SubathonChatter extends Document {
 }
 
 /* /subathon/chatters */
-const getSubathonMessageStats = async (req: Request, res: Response, next: NextFunction) => {
-  let offset = (req.query.offset) ? req.query.offset : 1;
+const getSubathonMessageStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  let offset = req.query.offset ? req.query.offset : 1;
   let limit: string | number;
   if (req.query.limit) {
     limit = parseInt(req.query.limit as string);
@@ -36,7 +40,11 @@ const getSubathonMessageStats = async (req: Request, res: Response, next: NextFu
 };
 
 /* /subathon/giftedsubs */
-const getSubathonGiftedSubsStats = async (req: Request, res: Response, next: NextFunction) => {
+const getSubathonGiftedSubsStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   let offset = req.query.offset;
   let limit: string | number;
   if (req.query.limit) {
@@ -62,7 +70,11 @@ const getSubathonGiftedSubsStats = async (req: Request, res: Response, next: Nex
 };
 
 /* /subathon/bitsdonated */
-const getSubathonDonatedBitsStats = async (req: Request, res: Response, next: NextFunction) => {
+const getSubathonDonatedBitsStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   let offset = req.query.offset;
   let limit: string | number;
   if (req.query.limit) {
@@ -87,7 +99,11 @@ const getSubathonDonatedBitsStats = async (req: Request, res: Response, next: Ne
   });
 };
 
-const getSubathonStartDate = async (req: Request, res: Response, next: NextFunction) => {
+const getSubathonStartDate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   let year = new Date().getFullYear();
   let difference = +new Date(`02/17/${year}`) - +new Date();
 
@@ -98,13 +114,18 @@ const getSubathonStartDate = async (req: Request, res: Response, next: NextFunct
       days: Math.floor(difference / (1000 * 60 * 60 * 24)),
       hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
       minutes: Math.floor((difference / 1000 / 60) % 60),
-      seconds: Math.floor((difference / 1000) % 60)
-    }
+      seconds: Math.floor((difference / 1000) % 60),
+    };
   }
 
   return res.status(200).json({
-    data: timeLeft
+    data: timeLeft,
   });
-}
+};
 
-export default { getSubathonMessageStats, getSubathonGiftedSubsStats, getSubathonDonatedBitsStats, getSubathonStartDate };
+export default {
+  getSubathonMessageStats,
+  getSubathonGiftedSubsStats,
+  getSubathonDonatedBitsStats,
+  getSubathonStartDate,
+};

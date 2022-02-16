@@ -3,7 +3,7 @@ import { StreamStat } from "./schemas/ChannelStats";
 
 export enum EventType {
   PREDICTION = "prediction",
-  POLL = "poll"
+  POLL = "poll",
 }
 
 export enum Events {
@@ -13,13 +13,13 @@ export enum Events {
   PREDICTION_END = "channel.prediction.end",
   POLL_BEGIN = "channel.poll.begin",
   POLL_PROGRESS = "channel.poll.progress",
-  POLL_END = "channel.poll.end"
+  POLL_END = "channel.poll.end",
 }
 
 export enum Status {
   OPEN = "open",
   LOCKED = "locked",
-  CLOSED = "closed"
+  CLOSED = "closed",
 }
 
 interface PayloadObject {
@@ -35,11 +35,20 @@ interface PayloadObject {
 
 export enum Layout {
   REGULAR = "regular",
-  COMPACT = "compact"
+  COMPACT = "compact",
 }
 
-export function sendWSPayload(Clients: object[], eventType: EventType, event: Events, status: Status, format: Layout, id: string, title: string, payload: object, dates: object) {
-  
+export function sendWSPayload(
+  Clients: object[],
+  eventType: EventType,
+  event: Events,
+  status: Status,
+  format: Layout,
+  id: string,
+  title: string,
+  payload: object,
+  dates: object
+) {
   let PayloadToSend: PayloadObject = {
     eventType: eventType,
     event: event,
@@ -48,8 +57,8 @@ export function sendWSPayload(Clients: object[], eventType: EventType, event: Ev
     id: id,
     title: title,
     payload: payload,
-    dates: dates
-  }
+    dates: dates,
+  };
 
   // TODO: If clients is empty, return and don't send the payload.
 
@@ -63,5 +72,5 @@ export function sendWSPayload(Clients: object[], eventType: EventType, event: Ev
 export async function getGameLayout() {
   let gQuery = await StreamStat.findOne({ type: "esfandtv" });
   let query = await findOne(`alertsettings`, `Game='${gQuery!.category}'`);
-  return (query) ? query.Format : Layout.REGULAR;
+  return query ? query.Format : Layout.REGULAR;
 }
