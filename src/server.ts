@@ -59,8 +59,7 @@ mongoose.connect(URI).then(() => {
   const cert = path.join(__dirname, "./certs/privkey.pem");
 
   /* Server */
-  const httpsServer = https.createServer({ key, cert }, router);
-  let server = httpsServer;
+  const httpsServer = https.createServer({ key, cert }, router).listen(8080);
 
   let wsClients: object[] = [];
 
@@ -437,10 +436,10 @@ mongoose.connect(URI).then(() => {
     });
   });
 
-  const PORT: any = process.env.PORT ?? 4500;
-  httpsServer.listen(PORT, () =>
+  /* const PORT: any = process.env.PORT ?? 4500;
+  router.listen(PORT, () =>
     console.log(`The server is running on port ${PORT}`)
-  );
+  ); */
 
   websocketServer(httpsServer, wsClients);
 });
