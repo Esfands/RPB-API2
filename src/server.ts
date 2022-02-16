@@ -15,6 +15,7 @@ import mongoose from "mongoose";
 import * as WebSocket from "ws";
 import fs from "fs";
 import * as path from 'path';
+import websocketServer from "./wsServer";
 
 // MariaDB setup
 import mariadb from "mariadb";
@@ -61,8 +62,6 @@ mongoose.connect(URI).then(() => {
   const httpsServer = https.createServer({ key, cert }, router);
   let server = httpsServer;
 
-  const wss = new WebSocket.Server({ server: server });
-
   let wsClients: object[] = [];
 
   function uuidv4() {
@@ -76,7 +75,7 @@ mongoose.connect(URI).then(() => {
     );
   }
 
-  wss.on("connection", (ws: any) => {
+  /* wss.on("connection", (ws: any) => {
     const id = uuidv4();
 
     console.log("Socket with ID " + id + " has been opened");
@@ -97,12 +96,12 @@ mongoose.connect(URI).then(() => {
 
   wss.addListener("close", function (event: any) {
     console.log("Client disconnected");
-  });
+  }); */
 
-  wss.on("close", (ws: any) => {
+ /*  wss.on("close", (ws: any) => {
     console.log("Websockets closed");
   });
-
+ */
   /* Logging */
   router.use(morgan("dev"));
 
@@ -442,4 +441,6 @@ mongoose.connect(URI).then(() => {
   httpsServer.listen(PORT, () =>
     console.log(`The server is running on port ${PORT}`)
   );
+
+  websocketServer(httpsServer, wsClients);
 });

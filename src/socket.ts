@@ -1,3 +1,4 @@
+import { WebSocketServer } from "ws";
 import { findOne } from "./maria";
 import { StreamStat } from "./schemas/ChannelStats";
 
