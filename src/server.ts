@@ -58,7 +58,7 @@ mongoose.connect(URI).then(() => {
   /* Server */
   const httpsServer = http.createServer(router).listen(8080);
 
-  let wsClients: object[] = [];
+  let wsClients: any[] = [];
 
   function uuidv4() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
