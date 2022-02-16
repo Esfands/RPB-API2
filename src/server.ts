@@ -1,7 +1,7 @@
 // Server setup
 import * as dotenv from "dotenv";
 dotenv.config();
-import https from "https";
+import http from "https";
 import express, { application, Express, Request, Router } from "express";
 import morgan from "morgan";
 import routes from "./routes/commands";
@@ -14,7 +14,7 @@ import * as crypto from "crypto";
 import mongoose from "mongoose";
 import * as WebSocket from "ws";
 import fs from "fs";
-import * as path from 'path';
+import * as path from "path";
 import websocketServer from "./wsServer";
 
 // MariaDB setup
@@ -55,12 +55,8 @@ mongoose.connect(URI).then(() => {
 
   const HMAC_PREFIX = "sha256=";
 
-  const key = fs.readFileSync('/etc/letsencrypt/live/api.retpaladinbot.com/fullchain.pem');
-  console.log(key);
-  const cert = fs.readFileSync("/etc/letsencrypt/live/api.retpaladinbot.com/privkey.pem");
-
   /* Server */
-  const httpsServer = https.createServer({ key, cert }, router).listen(8080);
+  const httpsServer = http.createServer(router).listen(8080);
 
   let wsClients: object[] = [];
 
@@ -98,10 +94,10 @@ mongoose.connect(URI).then(() => {
     console.log("Client disconnected");
   }); */
 
- /*  wss.on("close", (ws: any) => {
-    console.log("Websockets closed");
-  });
- */
+  /*  wss.on("close", (ws: any) => {
+     console.log("Websockets closed");
+   });
+  */
   /* Logging */
   router.use(morgan("dev"));
 
@@ -437,10 +433,10 @@ mongoose.connect(URI).then(() => {
     });
   });
 
-  /* const PORT: any = process.env.PORT ?? 4500;
-  router.listen(PORT, () =>
+  const PORT: any = process.env.PORT ?? 4500;
+  let expressServer = router.listen(PORT, () =>
     console.log(`The server is running on port ${PORT}`)
-  ); */
+  );
 
-  websocketServer(httpsServer, wsClients);
+  websocketServer(expressServer, wsClients);
 });
