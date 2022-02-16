@@ -72,5 +72,5 @@ export function sendWSPayload(
 export async function getGameLayout() {
   let gQuery = await StreamStat.findOne({ type: "esfandtv" });
   let query = await findOne(`alertsettings`, `Game='${gQuery!.category}'`);
-  return query ? query.Format : Layout.REGULAR;
+  return Layout.REGULAR;
 }
