@@ -51,6 +51,8 @@ export function sendWSPayload(Clients: object[], eventType: EventType, event: Ev
     dates: dates
   }
 
+  // TODO: If clients is empty, return and don't send the payload.
+
   let clients = [...Clients.keys()];
   clients.forEach((client: any) => {
     client.send(JSON.stringify(PayloadToSend));

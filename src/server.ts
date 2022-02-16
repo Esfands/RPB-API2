@@ -1,7 +1,7 @@
 // Server setup
 import * as dotenv from "dotenv";
 dotenv.config();
-import http from "http";
+import https from "https";
 import express, { application, Express, Request, Router } from "express";
 import morgan from "morgan";
 import routes from "./routes/commands";
@@ -13,6 +13,7 @@ import twitchRoutes from "./routes/twitch";
 import * as crypto from "crypto";
 import mongoose from "mongoose";
 import * as WebSocket from 'ws';
+import fs from 'fs';
 
 // MariaDB setup
 import mariadb from "mariadb";
@@ -45,9 +46,12 @@ mongoose.connect(URI).then(() => {
 
   const HMAC_PREFIX = "sha256=";
 
+  const key = fs.readFileSync('./certs/fullchain.pem');
+  const cert = fs.readFileSync('./certs/privkey.pem');
+
   /* Server */
-  const httpServer = http.createServer(router);
-  let server = httpServer;
+  const httpsServer = https.createServer({key, cert}, router);
+  let server = httpsServer;
 
   const wss = new WebSocket.Server({ server: server });
 
@@ -282,7 +286,7 @@ mongoose.connect(URI).then(() => {
 
 
   const PORT: any = process.env.PORT ?? 4500;
-  httpServer.listen(PORT, () =>
+  httpsServer.listen(PORT, () =>
     console.log(`The server is running on port ${PORT}`)
   );
 });
