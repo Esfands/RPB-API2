@@ -211,7 +211,10 @@ mongoose.connect(URI).then(() => {
             notificationLayout,
             info.id,
             info.title,
-            info.outcomes,
+            {
+              winning_outcome_id: null,
+              outcomes: info.outcomes,
+            },
             { started: info.started_at, ends: info.locks_at }
           );
         } else if (
@@ -227,7 +230,10 @@ mongoose.connect(URI).then(() => {
             notificationLayout,
             info.id,
             info.title,
-            info.outcomes,
+            {
+              winning_outcome_id: null,
+              outcomes: info.outcomes,
+            },
             { started: info.started_at, ends: info.locks_at }
           );
         } else if (
@@ -254,7 +260,10 @@ mongoose.connect(URI).then(() => {
             notificationLayout,
             info.id,
             info.title,
-            info.outcomes,
+            {
+              winning_outcome_id: null,
+              outcomes: info.outcomes,
+            },
             { started: info.started_at, ends: info.locked_at }
           );
         } else if (
