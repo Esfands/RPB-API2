@@ -55,8 +55,8 @@ mongoose.connect(URI).then(() => {
 
   const HMAC_PREFIX = "sha256=";
 
-  const key = fs.readFileSync('/etc/letsencrypt/live/api.retpaladinbot.com-0001/fullchain.pem');
-  const cert = fs.readFileSync("/etc/letsencrypt/live/api.retpaladinbot.com-0001/privkey.pem");
+  const key = fs.readFileSync('/etc/letsencrypt/live/api.retpaladinbot.com/fullchain.pem');
+  const cert = fs.readFileSync("/etc/letsencrypt/live/api.retpaladinbot.com/privkey.pem");
 
   /* Server */
   const httpsServer = https.createServer({ key, cert }, router).listen(8080);
