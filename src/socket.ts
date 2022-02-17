@@ -94,7 +94,7 @@ export async function addToMap(type:string , payload: any) {
 
   count++;
   map.set(count, payload);
-
+  console.log("New " + type + " that's " + count);
   return map;
 }
 
@@ -106,4 +106,6 @@ export function lastItemInMap(type: string) {
 export function emptyMap(type: string) {
   let map = (type === "poll") ? pollDict : predictionDict;
   map.clear();
+  count = 0;
+  console.log("Cleared map for " + type);
 }
