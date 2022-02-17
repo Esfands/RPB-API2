@@ -11,7 +11,6 @@ export default (expressServer: any, wsClients: any) => {
 
   websocketServer.on("connection", (connection) => {
     console.log("WebSocket connection opened");
-
     wsClients.push(connection);
 
     connection.on("close", () => {
