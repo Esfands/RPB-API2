@@ -85,27 +85,3 @@ export async function mergePayloads(cachedPayloads: any[]) {
   //return deepmerge.all(cachedPayloads, options);
 
 }
-
-let count = 0;
-let predictionDict = new Map();
-let pollDict = new Map();
-export async function addToMap(type:string , payload: any) {
-  let map = (type === "poll") ? pollDict : predictionDict;
-
-  count++;
-  map.set(count, payload);
-  console.log("New " + type + " that's " + count);
-  return map;
-}
-
-export function lastItemInMap(type: string) {
-  let map = (type === "poll") ? pollDict : predictionDict;
-  return Array.from(map.values()).pop();
-}
-
-export function emptyMap(type: string) {
-  let map = (type === "poll") ? pollDict : predictionDict;
-  map.clear();
-  count = 0;
-  console.log("Cleared map for " + type);
-}
