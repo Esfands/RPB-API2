@@ -267,8 +267,7 @@ mongoose.connect(URI).then(() => {
           );
           console.log(info);
           let notificationLayout = await getGameLayout();
-          
-          // TODO: empty the map
+
           clearInterval(getLatestPrediction);
           emptyMap("prediction");
 
@@ -302,6 +301,12 @@ mongoose.connect(URI).then(() => {
           );
           console.log(info);
           let notificationLayout = await getGameLayout();
+
+          if (getLatestPollItem) {
+            clearInterval(getLatestPrediction);
+            emptyMap("prediction");
+          }
+
           sendWSPayload(
             wsClients,
             EventType.PREDICTION,
