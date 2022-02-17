@@ -22,10 +22,14 @@ import mariadb from "mariadb";
 import { findOne, insertRow, updateOne } from "./maria";
 import { StreamStat } from "./schemas/ChannelStats";
 import {
+  addToMap,
+  emptyMap,
   Events,
   EventType,
   getGameLayout,
+  lastItemInMap,
   Layout,
+  mergePayloads,
   sendWSPayload,
   Status,
 } from "./socket";
@@ -35,6 +39,9 @@ export const pool = mariadb.createPool({
   password: process.env.MARIA_PASSWORD,
   database: process.env.MARIA_DATABASE,
 });
+
+let getLatestPollItem: NodeJS.Timer;
+let getLatestPrediction: NodeJS.Timer;
 
 const URI: any = process.env.MONGO_URI;
 mongoose.connect(URI).then(() => {
@@ -203,6 +210,7 @@ mongoose.connect(URI).then(() => {
             info.outcomes,
             { started: info.started_at, ends: info.locks_at }
           );
+
           sendWSPayload(
             wsClients,
             EventType.PREDICTION,
@@ -222,20 +230,27 @@ mongoose.connect(URI).then(() => {
         ) {
           let info = notification.event;
           let notificationLayout = await getGameLayout();
-          sendWSPayload(
-            wsClients,
-            EventType.PREDICTION,
-            Events.PREDICTION_PROGRESS,
-            Status.OPEN,
-            notificationLayout,
-            info.id,
-            info.title,
-            {
-              winning_outcome_id: null,
-              outcomes: info.outcomes,
-            },
-            { started: info.started_at, ends: info.locks_at }
-          );
+
+          let payload = {
+            winning_outcome_id: null,
+            outcomes: info.outcomes,
+          };
+
+          await addToMap("prediction", payload);
+          getLatestPrediction = setInterval(() => {
+            sendWSPayload(
+              wsClients,
+              EventType.PREDICTION,
+              Events.PREDICTION_BEGIN,
+              Status.OPEN,
+              notificationLayout,
+              info.id,
+              info.title,
+              lastItemInMap("prediction"),
+              { started: info.started_at, ends: info.locks_at }
+            );
+          }, 2500);
+
         } else if (
           notification.subscription.type === "channel.prediction.lock"
         ) {
@@ -252,6 +267,11 @@ mongoose.connect(URI).then(() => {
           );
           console.log(info);
           let notificationLayout = await getGameLayout();
+          
+          // TODO: empty the map
+          clearInterval(getLatestPrediction);
+          emptyMap("prediction");
+
           sendWSPayload(
             wsClients,
             EventType.PREDICTION,
@@ -331,6 +351,7 @@ mongoose.connect(URI).then(() => {
             payload,
             { started: info.started_at, ends: info.ends_at }
           );
+
         } else if (notification.subscription.type === "channel.poll.progress") {
           let info = notification.event;
           let payload: object = {
@@ -339,17 +360,22 @@ mongoose.connect(URI).then(() => {
             points: info.channel_points_voting,
           };
           let notificationLayout = await getGameLayout();
-          sendWSPayload(
-            wsClients,
-            EventType.POLL,
-            Events.POLL_PROGRESS,
-            Status.OPEN,
-            notificationLayout,
-            info.id,
-            info.title,
-            payload,
-            { started: info.started_at, ends: info.ends_at }
-          );
+
+          await addToMap("poll", payload);
+          getLatestPollItem = setInterval(() => {
+            sendWSPayload(
+              wsClients,
+              EventType.POLL,
+              Events.POLL_PROGRESS,
+              Status.OPEN,
+              notificationLayout,
+              info.id,
+              info.title,
+              lastItemInMap("poll"),
+              { started: info.started_at, ends: info.ends_at }
+            );
+          }, 2500);
+
         } else if (notification.subscription.type === "channel.poll.end") {
           let info = notification.event;
           await updateOne(
@@ -368,6 +394,10 @@ mongoose.connect(URI).then(() => {
             points: info.channel_points_voting,
           };
           let notificationLayout = await getGameLayout();
+
+          // Clear the poll interval
+          clearInterval(getLatestPollItem)
+          emptyMap("poll")
           sendWSPayload(
             wsClients,
             EventType.POLL,
