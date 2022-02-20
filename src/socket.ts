@@ -74,13 +74,3 @@ export async function getGameLayout() {
   let query = await findOne(`alertsettings`, `Game='${gQuery!.category}'`);
   return query ? query.Format : Layout.REGULAR;
 }
-
-export async function mergePayloads(cachedPayloads: any[]) {
-  cachedPayloads.forEach((payload: any) => {
-    for (let [key, value] of Object.entries(payload)) {
-      console.log()
-    }
-  });  
-  //return deepmerge.all(cachedPayloads, options);
-
-}

@@ -26,7 +26,6 @@ import {
   EventType,
   getGameLayout,
   Layout,
-  mergePayloads,
   sendWSPayload,
   Status,
 } from "./socket";
@@ -178,9 +177,7 @@ mongoose.connect(URI).then(() => {
               changedGameAt: new Date(),
             }
           ).then((res) => console.log("EsfandTV has updated stream..."));
-        } else if (
-          notification.subscription.type === "channel.prediction.begin"
-        ) {
+        } else if (notification.subscription.type === "channel.prediction.begin") {
           let info = notification.event;
           let values = [
             info.id,
@@ -191,10 +188,7 @@ mongoose.connect(URI).then(() => {
             new Date(info.started_at),
             new Date(info.locks_at),
           ];
-          await insertRow(
-            `INSERT INTO predictions (ID, Broadcaster, Status, Title, OutComes, StartedAt, LocksAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            values
-          );
+          await insertRow(`INSERT INTO predictions (ID, Broadcaster, Status, Title, OutComes, StartedAt, LocksAt) VALUES (?, ?, ?, ?, ?, ?, ?)`, values);
           //console.log(info);
           let notificationLayout = await getGameLayout();
           console.log(
@@ -222,9 +216,7 @@ mongoose.connect(URI).then(() => {
             },
             { started: info.started_at, ends: info.locks_at }
           );
-        } else if (
-          notification.subscription.type === "channel.prediction.progress"
-        ) {
+        } else if (notification.subscription.type === "channel.prediction.progress") {
           let info = notification.event;
           let notificationLayout = await getGameLayout();
 
@@ -236,7 +228,7 @@ mongoose.connect(URI).then(() => {
           sendWSPayload(
             wsClients,
             EventType.PREDICTION,
-            Events.PREDICTION_BEGIN,
+            Events.PREDICTION_PROGRESS,
             Status.OPEN,
             notificationLayout,
             info.id,
