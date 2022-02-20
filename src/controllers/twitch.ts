@@ -11,6 +11,7 @@ const getTwitchToken = async (
     "channel:read:predictions",
     "channel:read:polls",
     "channel:read:subscriptions",
+    "channel:manage:redemptions"
   ];
   return res
     .status(301)
