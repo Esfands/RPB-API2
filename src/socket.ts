@@ -5,6 +5,7 @@ import { StreamStat } from "./schemas/ChannelStats";
 export enum EventType {
   PREDICTION = "prediction",
   POLL = "poll",
+  CHANNEL_POINT = "channel_point_reward_redemption"
 }
 
 export enum Events {
@@ -15,6 +16,8 @@ export enum Events {
   POLL_BEGIN = "channel.poll.begin",
   POLL_PROGRESS = "channel.poll.progress",
   POLL_END = "channel.poll.end",
+  CHANNEL_POINT_UPDATE = "channel.channel_points_custom_reward_redemption.update",
+  CHANNEL_POINT_ADD = "channel.channel_points_custom_reward_redemption.add"
 }
 
 export enum Status {
@@ -39,7 +42,7 @@ export enum Layout {
   COMPACT = "compact",
 }
 
-export function sendWSPayload(
+export function sendWSPredPollOverlayPayload(
   Clients: object[],
   eventType: EventType,
   event: Events,
@@ -61,11 +64,24 @@ export function sendWSPayload(
     dates: dates,
   };
 
-  // TODO: If clients is empty, return and don't send the payload.
   if (Clients.length === 0) return console.log("No clients to send payload to.");
   Clients.forEach((client: any) => {
     client.send(JSON.stringify(PayloadToSend));
   });
+}
+
+export function sendWSChannelPointRewardPayload(Clients: object[], rewardTitle: string, prompt: string) {
+  if (rewardTitle.toLowerCase() === "test reward from cli") {
+
+    let payloadToSend = {
+      title: rewardTitle,
+    }
+
+    if (Clients.length === 0) return console.log("No clients to send payload to.");
+    Clients.forEach((client: any) => {
+      client.send(JSON.stringify(payloadToSend));
+    });
+  }
 }
 
 // Get current game category

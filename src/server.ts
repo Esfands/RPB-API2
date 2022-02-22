@@ -26,7 +26,8 @@ import {
   EventType,
   getGameLayout,
   Layout,
-  sendWSPayload,
+  sendWSChannelPointRewardPayload,
+  sendWSPredPollOverlayPayload,
   Status,
 } from "./socket";
 export const pool = mariadb.createPool({
@@ -202,7 +203,7 @@ mongoose.connect(URI).then(() => {
             { started: info.started_at, ends: info.locks_at }
           );
 
-          sendWSPayload(
+          sendWSPredPollOverlayPayload(
             wsClients,
             EventType.PREDICTION,
             Events.PREDICTION_BEGIN,
@@ -225,7 +226,7 @@ mongoose.connect(URI).then(() => {
             outcomes: info.outcomes,
           };
 
-          sendWSPayload(
+          sendWSPredPollOverlayPayload(
             wsClients,
             EventType.PREDICTION,
             Events.PREDICTION_PROGRESS,
@@ -254,7 +255,7 @@ mongoose.connect(URI).then(() => {
           console.log(info);
           let notificationLayout = await getGameLayout();
 
-          sendWSPayload(
+          sendWSPredPollOverlayPayload(
             wsClients,
             EventType.PREDICTION,
             Events.PREDICTION_LOCK,
@@ -285,7 +286,7 @@ mongoose.connect(URI).then(() => {
           console.log(info);
           let notificationLayout = await getGameLayout();
 
-          sendWSPayload(
+          sendWSPredPollOverlayPayload(
             wsClients,
             EventType.PREDICTION,
             Events.PREDICTION_END,
@@ -323,7 +324,7 @@ mongoose.connect(URI).then(() => {
             points: info.channel_points_voting,
           };
           let notificationLayout = await getGameLayout();
-          sendWSPayload(
+          sendWSPredPollOverlayPayload(
             wsClients,
             EventType.POLL,
             Events.POLL_BEGIN,
@@ -344,7 +345,7 @@ mongoose.connect(URI).then(() => {
           };
           let notificationLayout = await getGameLayout();
 
-          sendWSPayload(
+          sendWSPredPollOverlayPayload(
             wsClients,
             EventType.POLL,
             Events.POLL_PROGRESS,
@@ -375,7 +376,7 @@ mongoose.connect(URI).then(() => {
           };
           let notificationLayout = await getGameLayout();
 
-          sendWSPayload(
+          sendWSPredPollOverlayPayload(
             wsClients,
             EventType.POLL,
             Events.POLL_END,
@@ -386,6 +387,19 @@ mongoose.connect(URI).then(() => {
             payload,
             { started: info.started_at, ends: info.ends_at }
           );
+        } else if (notification.subscription.type === "channel.channel_points_custom_reward_redemption.add") {
+          let info = notification.event;
+
+          if (info.status === "unfulfilled") {
+            sendWSChannelPointRewardPayload(wsClients, info.reward.title, info.user_input);
+          }
+
+        } else if (notification.subscription.type === "channel.channel_points_custom_reward_redemption.update") {
+          let info = notification.event;
+
+          if (info.status === "unfulfilled") {
+            sendWSChannelPointRewardPayload(wsClients, info.reward.title, info.user_input);
+          }
         }
 
         res.sendStatus(204);

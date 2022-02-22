@@ -123,9 +123,23 @@ const getSubathonStartDate = async (
   });
 };
 
+const getWheelSpinStats = async (req: Request, res: Response, next: NextFunction) => {
+  let query = await findQuery(`SELECT * FROM wheelspin`, []);
+
+  return res.status(200).json({
+    data: {
+      amount_needed: query[0].AmountNeeded,
+      gifted: query[0].Gifted,
+      wheelspins: query[0].WheelSpins,
+      completed: query[0].completed
+    }
+  });
+}
+
 export default {
   getSubathonMessageStats,
   getSubathonGiftedSubsStats,
   getSubathonDonatedBitsStats,
   getSubathonStartDate,
+  getWheelSpinStats
 };
