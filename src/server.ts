@@ -469,4 +469,13 @@ mongoose.connect(URI).then(() => {
   );
 
   websocketServer(expressServer, wsClients);
+
+  ['SIGINT', 'SIGTERM', 'SIGQUIT']
+  .forEach(signal => process.on(signal, () => {
+    if (wsClients.length === 0) return console.log("No clients to safely close.");
+    wsClients.forEach((client: WebSocket) => {
+      client.close(1012, "Server is restarting");
+    });
+    process.exit();
+  }));
 });
