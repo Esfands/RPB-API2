@@ -213,6 +213,7 @@ mongoose.connect(URI).then(() => {
             info.title,
             {
               winning_outcome_id: null,
+              status: null,
               outcomes: info.outcomes,
             },
             { started: info.started_at, ends: info.locks_at }
@@ -223,6 +224,7 @@ mongoose.connect(URI).then(() => {
 
           let payload = {
             winning_outcome_id: null,
+            status: null,
             outcomes: info.outcomes,
           };
 
@@ -265,6 +267,7 @@ mongoose.connect(URI).then(() => {
             info.title,
             {
               winning_outcome_id: null,
+              status: null,
               outcomes: info.outcomes,
             },
             { started: info.started_at, ends: info.locked_at }
@@ -296,6 +299,7 @@ mongoose.connect(URI).then(() => {
             info.title,
             {
               winning_outcome_id: info.winning_outcome_id,
+              status: info.status,
               outcomes: info.outcomes,
             },
             { started: info.started_at, ends: info.locked_at }
@@ -472,11 +476,11 @@ mongoose.connect(URI).then(() => {
   websocketServer(expressServer, wsClients);
 
   ['SIGINT', 'SIGTERM', 'SIGQUIT']
-  .forEach(signal => process.on(signal, () => {
-    if (wsClients.length === 0) return console.log("No clients to safely close.");
-    wsClients.forEach((client: WebSocket) => {
-      client.close(1012, "Server is restarting");
-    });
-    process.exit();
-  }));
+    .forEach(signal => process.on(signal, () => {
+      if (wsClients.length === 0) return console.log("No clients to safely close.");
+      wsClients.forEach((client: WebSocket) => {
+        client.close(1012, "Server is restarting");
+      });
+      process.exit();
+    }));
 });
