@@ -131,7 +131,8 @@ const getWheelSpinStats = async (req: Request, res: Response, next: NextFunction
       amount_needed: query[0].AmountNeeded,
       gifted: query[0].Gifted,
       wheelspins: query[0].WheelSpins,
-      completed: query[0].completed
+      completed: query[0].Completed,
+      is_power_hour: query[0].is_power_hour
     }
   });
 }
