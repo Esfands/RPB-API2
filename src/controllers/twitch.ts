@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Request, Response, NextFunction } from "express";
-import { findOne, insertRow, updateOne } from "../maria";
+import { findOne, findQuery, insertRow, updateOne } from "../maria";
 
 const getTwitchToken = async (
   req: Request,
@@ -181,10 +181,32 @@ const getTwitchChannelEmotes = async (
   }
 };
 
+const getEsfandsChannelEmotes = async (req: Request, res: Response, next: NextFunction) => {
+  
+  let emotes = await findQuery(`SELECT * FROM emotes;`, []);
+  let emoteData: any[] = [];
+
+  emotes.forEach((emote: any) => {
+    emoteData.push({
+      name: emote.Name,
+      id: emote.ID,
+      service: emote.Service,
+      scope: emote.Scope,
+      url: emote.URL,
+      zeroWidth: (emote.ZeroWidth === "false") ? false : true
+    });
+  });
+
+  return res.status(200).json({
+    data: emoteData
+  });
+};
+
 export default {
   getTwitchToken,
   twitchTokenCallback,
   twitchTokenDone,
   getTwitchId,
   getTwitchChannelEmotes,
+  getEsfandsChannelEmotes
 };

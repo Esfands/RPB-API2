@@ -1,6 +1,7 @@
 import { WebSocketServer } from "ws";
 import { findOne } from "./maria";
 import { StreamStat } from "./schemas/ChannelStats";
+import { pool } from "./server";
 
 export enum EventType {
   PREDICTION = "prediction",
@@ -70,17 +71,36 @@ export function sendWSPredPollOverlayPayload(
   });
 }
 
-export function sendWSChannelPointRewardPayload(Clients: object[], rewardTitle: string, prompt: string) {
+export async function sendWSChannelPointRewardPayload(Clients: object[], rewardTitle: string, prompt: string) {
   if (rewardTitle.toLowerCase() === "test reward from cli") {
 
-    let payloadToSend = {
-      title: rewardTitle,
-    }
+    // Prio: sub, BTTV, FFZ, 7tv
+    let conn;
+    try {
+      conn = await pool.getConnection();
+      let rows = await conn.query("SELECT URL, Service FROM emotes WHERE Name=?;", [prompt]);
 
-    if (Clients.length === 0) return console.log("No clients to send payload to.");
-    Clients.forEach((client: any) => {
-      client.send(JSON.stringify(payloadToSend));
-    });
+      let url: string | null = null;
+      rows.forEach((data: any) => {
+        if (url === null) if (data.hasOwnProperty("Service") && data.Service === "twitch") return url = data.URL;
+        if (url === null) if (data.hasOwnProperty("Service") && data.Service === "bttv") return url = data.URL;
+        if (url === null) if (data.hasOwnProperty("Service") && data.Service === "ffz") return url = data.URL;
+        if (url === null) if (data.hasOwnProperty("Service") && data.Service === "7tv") return url = data.URL;
+      });
+
+      if (Clients.length === 0) return console.log("No clients to send payload to.");
+      Clients.forEach((client: any) => {
+        client.send(JSON.stringify({url: url}));
+      });
+
+    } catch (err) {
+      if (Clients.length === 0) return console.log("No clients to send payload to.");
+      Clients.forEach((client: any) => {
+        client.send(JSON.stringify({ url: null }));
+      });
+    } finally {
+      if (conn) return conn.end();
+    }
   }
 }
 

@@ -60,7 +60,7 @@ mongoose.connect(URI).then(() => {
   const HMAC_PREFIX = "sha256=";
 
   /* Server */
-  const httpsServer = http.createServer(router).listen(8080);
+  const httpsServer = http.createServer(router).listen(5000);
 
   let wsClients: any[] = [];
 
@@ -397,6 +397,7 @@ mongoose.connect(URI).then(() => {
         } else if (notification.subscription.type === "channel.channel_points_custom_reward_redemption.update") {
           let info = notification.event;
 
+          console.log('channel.channel_points_custom_reward_redemption.update')
           if (info.status === "unfulfilled") {
             sendWSChannelPointRewardPayload(wsClients, info.reward.title, info.user_input);
           }
