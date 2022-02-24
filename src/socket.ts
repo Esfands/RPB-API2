@@ -1,5 +1,5 @@
 import { WebSocketServer } from "ws";
-import { findOne } from "./maria";
+import { findOne, findQuery } from "./maria";
 import { StreamStat } from "./schemas/ChannelStats";
 import { pool } from "./server";
 
@@ -32,6 +32,7 @@ interface PayloadObject {
   event: Events;
   status: Status;
   format: Layout;
+  offset: "top" | "middle" | number;
   id: string;
   title: string;
   payload: object;
@@ -49,6 +50,7 @@ export function sendWSPredPollOverlayPayload(
   event: Events,
   status: Status,
   format: Layout,
+  offset: "top" | "middle" | number,
   id: string,
   title: string,
   payload: object,
@@ -59,6 +61,7 @@ export function sendWSPredPollOverlayPayload(
     event: event,
     status: status,
     format: format,
+    offset: offset,
     id: id,
     title: title,
     payload: payload,
@@ -109,4 +112,11 @@ export async function getGameLayout() {
   let gQuery = await StreamStat.findOne({ type: "esfandtv" });
   let query = await findOne(`alertsettings`, `Game='${gQuery!.category}'`);
   return query ? query.Format : Layout.REGULAR;
+}
+
+// Get the offset for the given category
+export async function getLayoutOffset() {
+  let query = await findQuery("SELECT * FROM settings WHERE Title='esfandevents_offset' LIMIT 1;", []);
+  let data = JSON.parse(query[0].Data);
+  return data.offset;
 }

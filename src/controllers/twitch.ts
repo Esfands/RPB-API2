@@ -208,5 +208,5 @@ export default {
   twitchTokenDone,
   getTwitchId,
   getTwitchChannelEmotes,
-  getEsfandsChannelEmotes
+  getEsfandsChannelEmotes,
 };

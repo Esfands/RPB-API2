@@ -25,6 +25,7 @@ import {
   Events,
   EventType,
   getGameLayout,
+  getLayoutOffset,
   Layout,
   sendWSChannelPointRewardPayload,
   sendWSPredPollOverlayPayload,
@@ -192,6 +193,8 @@ mongoose.connect(URI).then(() => {
           await insertRow(`INSERT INTO predictions (ID, Broadcaster, Status, Title, OutComes, StartedAt, LocksAt) VALUES (?, ?, ?, ?, ?, ?, ?)`, values);
           //console.log(info);
           let notificationLayout = await getGameLayout();
+          let offset = await getLayoutOffset();
+
           console.log(
             EventType.PREDICTION,
             Events.PREDICTION_BEGIN,
@@ -209,6 +212,7 @@ mongoose.connect(URI).then(() => {
             Events.PREDICTION_BEGIN,
             Status.OPEN,
             notificationLayout,
+            offset,
             info.id,
             info.title,
             {
@@ -221,6 +225,7 @@ mongoose.connect(URI).then(() => {
         } else if (notification.subscription.type === "channel.prediction.progress") {
           let info = notification.event;
           let notificationLayout = await getGameLayout();
+          let offset = await getLayoutOffset();
 
           let payload = {
             winning_outcome_id: null,
@@ -234,6 +239,7 @@ mongoose.connect(URI).then(() => {
             Events.PREDICTION_PROGRESS,
             Status.OPEN,
             notificationLayout,
+            offset,
             info.id,
             info.title,
             payload,
@@ -256,6 +262,7 @@ mongoose.connect(URI).then(() => {
           );
           console.log(info);
           let notificationLayout = await getGameLayout();
+          let offset = await getLayoutOffset();
 
           sendWSPredPollOverlayPayload(
             wsClients,
@@ -263,6 +270,7 @@ mongoose.connect(URI).then(() => {
             Events.PREDICTION_LOCK,
             Status.LOCKED,
             notificationLayout,
+            offset,
             info.id,
             info.title,
             {
@@ -288,6 +296,7 @@ mongoose.connect(URI).then(() => {
           );
           console.log(info);
           let notificationLayout = await getGameLayout();
+          let offset = await getLayoutOffset();
 
           sendWSPredPollOverlayPayload(
             wsClients,
@@ -295,6 +304,7 @@ mongoose.connect(URI).then(() => {
             Events.PREDICTION_END,
             Status.CLOSED,
             notificationLayout,
+            offset,
             info.id,
             info.title,
             {
@@ -328,12 +338,15 @@ mongoose.connect(URI).then(() => {
             points: info.channel_points_voting,
           };
           let notificationLayout = await getGameLayout();
+          let offset = await getLayoutOffset();
+
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.POLL,
             Events.POLL_BEGIN,
             Status.OPEN,
             notificationLayout,
+            offset,
             info.id,
             info.title,
             payload,
@@ -348,6 +361,7 @@ mongoose.connect(URI).then(() => {
             points: info.channel_points_voting,
           };
           let notificationLayout = await getGameLayout();
+          let offset = await getLayoutOffset();
 
           sendWSPredPollOverlayPayload(
             wsClients,
@@ -355,6 +369,7 @@ mongoose.connect(URI).then(() => {
             Events.POLL_PROGRESS,
             Status.OPEN,
             notificationLayout,
+            offset,
             info.id,
             info.title,
             payload,
@@ -379,6 +394,7 @@ mongoose.connect(URI).then(() => {
             points: info.channel_points_voting,
           };
           let notificationLayout = await getGameLayout();
+          let offset = await getLayoutOffset();
 
           sendWSPredPollOverlayPayload(
             wsClients,
@@ -386,6 +402,7 @@ mongoose.connect(URI).then(() => {
             Events.POLL_END,
             Status.CLOSED,
             notificationLayout,
+            offset,
             info.id,
             info.title,
             payload,
