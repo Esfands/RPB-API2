@@ -16,10 +16,8 @@ const getTwitchToken = async (
   return res
     .status(301)
     .redirect(
-      `https://id.twitch.tv/oauth2/authorize?client_id=${
-        process.env.CLIENT_ID
-      }&redirect_uri=${
-        process.env.REDIRECT_URL
+      `https://id.twitch.tv/oauth2/authorize?client_id=${process.env.CLIENT_ID
+      }&redirect_uri=${process.env.REDIRECT_URL
       }&response_type=code&scope=${scopes.join("%20")}`
     );
 };
@@ -54,10 +52,8 @@ const twitchTokenCallback = async (
   let searchUser = await findOne("tokens", `Username='${username}'`);
   if (searchUser) {
     await updateOne(
-      `UPDATE tokens SET AccessToken='${
-        post.data["access_token"]
-      }', RefreshToken='${
-        post.data["refresh_token"]
+      `UPDATE tokens SET AccessToken='${post.data["access_token"]
+      }', RefreshToken='${post.data["refresh_token"]
       }', Scopes='${JSON.stringify(
         post.data["scope"]
       )}' WHERE Username='${username}';`,
@@ -182,8 +178,22 @@ const getTwitchChannelEmotes = async (
 };
 
 const getEsfandsChannelEmotes = async (req: Request, res: Response, next: NextFunction) => {
-  
-  let emotes = await findQuery(`SELECT * FROM emotes;`, []);
+  let limit: string | number;
+  if (req.query.limit) {
+    limit = parseInt(req.query.limit as string);
+  } else limit = 100;
+
+  let totalRows = await findQuery(`SELECT COUNT(*) FROM emotes;`, []);
+  let totalR = totalRows[0]["COUNT(*)"];
+  let totalPages = Math.ceil(totalR / limit);
+  let offset: string | number = parseInt(req.query.offset as string);
+  if (!offset) offset = 1;
+
+  if (offset > totalPages) {
+    offset = totalPages;
+  }
+
+  let emotes = await findQuery(`SELECT * FROM emotes ORDER BY Name ASC LIMIT ? OFFSET ?;`, [limit, offset]);
   let emoteData: any[] = [];
 
   emotes.forEach((emote: any) => {
@@ -198,7 +208,11 @@ const getEsfandsChannelEmotes = async (req: Request, res: Response, next: NextFu
   });
 
   return res.status(200).json({
-    data: emoteData
+    data: emoteData,
+    pagination: {
+      total: totalPages,
+      current: offset
+    },
   });
 };
 
