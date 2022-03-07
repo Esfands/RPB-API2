@@ -21,7 +21,6 @@ const getMBCommands = async (req: Request, res: Response, next: NextFunction) =>
   let query = await findQuery(mbPool, 'SELECT * FROM commands;', []);
 
   let commands = query;
-  console.log(commands);
 
   let cmdData: any[] = [];
   query.forEach((cmd: MBCommandInt) => {
@@ -75,4 +74,58 @@ const getMBChannelSettings = async (req: Request, res: Response, next: NextFunct
   })
 }
 
-export default { getMBCommands, getMBChannelSettings }
+const getMBOneChannelSettings = async (req: Request, res: Response, next: NextFunction) => {
+  let channel: string = req.params.channel;
+  let query = await findQuery(mbPool, 'SELECT * FROM channels WHERE username=?;', [channel]);
+
+  if (query[0]) {
+    return res.status(200).json({
+      id: query[0].id,
+      username: query[0].username,
+      prefix: query[0].prefix,
+      role: query[0].role,
+      logged: query[0].logged,
+      disabledCommands: query[0].disabledCommands
+    });
+  } else {
+    return res.status(404).json({
+      data: {
+        code: 404,
+        error: `The channel '${channel}' was not found.`
+      }
+    });
+  }
+}
+
+const getMBCommand = async (req: Request, res: Response, next: NextFunction) => {
+  let name: string = req.params.name;
+  let query = await findQuery(mbPool, 'SELECT * FROM commands WHERE name=?;', [name]);
+
+  if (query[0]) {
+    return res.status(200).json({
+      data: {
+        name: query[0]['name'],
+        aliases: query[0]['aliases'],
+        permissions: query[0]['permissions'],
+        description: query[0]['description'],
+        dynamicDescription: query[0]['dynamicDescription'],
+        globalCooldown: query[0]['globalCooldown'],
+        cooldown: query[0]['cooldown'],
+        testing: query[0]['testing'],
+        offlineOnly: query[0]['offlineOnly'],
+        onlineOnly: query[0]['onlineOnly'],
+        optout: query[0]['optout'],
+        count: query[0]['count']
+      }
+    });
+  } else {
+    return res.status(404).json({
+      data: {
+        code: 404,
+        error: `The command '${name}' was not found.`
+      }
+    });
+  }
+}
+
+export default { getMBCommands, getMBChannelSettings, getMBCommand, getMBOneChannelSettings }

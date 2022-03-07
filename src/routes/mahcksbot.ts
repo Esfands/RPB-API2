@@ -3,6 +3,8 @@ import controller from "../controllers/mahcksbot";
 const router = express.Router();
 
 router.get("/mb/commands", controller.getMBCommands);
+router.get("/mb/commands/:name", controller.getMBCommand);
 router.get("/mb/channels", controller.getMBChannelSettings);
+router.get("/mb/channels/:channel", controller.getMBOneChannelSettings);
 
 export = router;

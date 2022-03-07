@@ -45,20 +45,30 @@ const getCommand = async (req: Request, res: Response, next: NextFunction) => {
     name,
   ]);
 
-  return res.status(200).json({
-    data: {
-      Name: query[0]["Name"],
-      Aliases: JSON.parse(query[0]["Aliases"]),
-      Permissions: JSON.parse(query[0]["Permissions"]),
-      Description: query[0]["Description"],
-      DynamicDescription: JSON.parse(query[0]["DynamicDescription"]),
-      GlobalCooldown: query[0]["GlobalCooldown"],
-      Cooldown: query[0]["Cooldown"],
-      Testing: query[0]["Testing"],
-      OfflineOnly: query[0]["OfflineOnly"],
-      Count: query[0]["Count"],
-    },
-  });
+  if (query[0]) {
+    return res.status(200).json({
+      data: {
+        Name: query[0]["Name"],
+        Aliases: JSON.parse(query[0]["Aliases"]),
+        Permissions: JSON.parse(query[0]["Permissions"]),
+        Description: query[0]["Description"],
+        DynamicDescription: JSON.parse(query[0]["DynamicDescription"]),
+        GlobalCooldown: query[0]["GlobalCooldown"],
+        Cooldown: query[0]["Cooldown"],
+        Testing: query[0]["Testing"],
+        OfflineOnly: query[0]["OfflineOnly"],
+        Count: query[0]["Count"],
+      },
+    });
+  } else {
+    return res.status(404).json({
+      data: {
+        code: 404,
+        error: `The command '${name}' was not found.`
+      }
+    });
+  }
+
 };
 
 /* OTF Commands */
