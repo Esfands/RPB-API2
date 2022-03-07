@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { resourceLimits } from "worker_threads";
 import { findQuery } from "../maria";
 import { mbPool } from "../server";
 
@@ -128,4 +129,46 @@ const getMBCommand = async (req: Request, res: Response, next: NextFunction) => 
   }
 }
 
-export default { getMBCommands, getMBChannelSettings, getMBCommand, getMBOneChannelSettings }
+const getAllMBFeedback = async (req: Request, res: Response, next: NextFunction) => {
+  let query = await findQuery(mbPool, 'SELECT * FROM suggestions;', []);
+  let feedbackData: any[] = [];
+  query.forEach((feed: any) => {
+    feedbackData.push({
+      id: feed.id,
+      uid: feed.uid,
+      username: feed.username,
+      message: feed.message,
+      status: feed.status
+    });
+  });
+
+  return res.status(200).json({
+    data: feedbackData
+  });
+}
+
+const getOneMBFeedback = async (req: Request, res: Response, next: NextFunction) => {
+  let id: string = req.params.id;
+  let query = await findQuery(mbPool, 'SELECT * FROM suggestions WHERE id=?;', [id]);
+
+  if (query[0]) {
+    return res.status(200).json({
+      data: {
+        id: query[0].id,
+        uid: query[0].uid,
+        username: query[0].username,
+        message: query[0].message,
+        status: query[0].status
+      }
+    })
+  } else {
+    return res.status(404).json({
+      data: {
+        code: 404,
+        error: `Couldn't find a suggestion the ID ${id}`
+      }
+    })
+  }
+}
+
+export default { getMBCommands, getMBChannelSettings, getMBCommand, getMBOneChannelSettings, getAllMBFeedback, getOneMBFeedback }
