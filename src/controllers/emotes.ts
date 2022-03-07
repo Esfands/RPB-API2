@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { findQuery } from "../maria";
+import { pool } from "../server";
 
 export interface IEmote {
   Channel: string;
@@ -13,7 +14,7 @@ export interface IEmote {
 const getEmotes = async (req: Request, res: Response, next: NextFunction) => {
   let channel: string = req.params.channel;
   console.log(channel);
-  let result = await findQuery("SELECT * FROM subemotes WHERE Channel=?;", [
+  let result = await findQuery(pool, "SELECT * FROM subemotes WHERE Channel=?;", [
     channel,
   ]);
   let emoteData: any[] = [];

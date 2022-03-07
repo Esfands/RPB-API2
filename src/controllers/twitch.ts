@@ -1,6 +1,7 @@
 import axios from "axios";
 import { Request, Response, NextFunction } from "express";
 import { findOne, findQuery, insertRow, updateOne } from "../maria";
+import { pool } from "../server";
 
 const getTwitchToken = async (
   req: Request,
@@ -49,9 +50,10 @@ const twitchTokenCallback = async (
 
   // Username, AccessToken, RefreshToken, Scopes
   let username = getUser.data["data"][0]["login"];
-  let searchUser = await findOne("tokens", `Username='${username}'`);
+  let searchUser = await findOne(pool, "tokens", `Username='${username}'`);
   if (searchUser) {
     await updateOne(
+      pool,
       `UPDATE tokens SET AccessToken='${post.data["access_token"]
       }', RefreshToken='${post.data["refresh_token"]
       }', Scopes='${JSON.stringify(
@@ -61,6 +63,7 @@ const twitchTokenCallback = async (
     );
   } else {
     await insertRow(
+      pool,
       `INSERT INTO tokens (Username, AccessToken, RefreshToken, Scopes) VALUES (?, ?, ?, ?)`,
       [
         username,
@@ -183,7 +186,7 @@ const getEsfandsChannelEmotes = async (req: Request, res: Response, next: NextFu
     limit = parseInt(req.query.limit as string);
   } else limit = 100;
 
-  let totalRows = await findQuery(`SELECT COUNT(*) FROM emotes;`, []);
+  let totalRows = await findQuery(pool, `SELECT COUNT(*) FROM emotes;`, []);
   let totalR = totalRows[0]["COUNT(*)"];
   let totalPages = Math.ceil(totalR / limit);
   let offset: string | number = parseInt(req.query.offset as string);
@@ -193,7 +196,7 @@ const getEsfandsChannelEmotes = async (req: Request, res: Response, next: NextFu
     offset = totalPages;
   }
 
-  let emotes = await findQuery(`SELECT * FROM emotes ORDER BY Name ASC LIMIT ? OFFSET ?;`, [limit, offset]);
+  let emotes = await findQuery(pool, `SELECT * FROM emotes ORDER BY Name ASC LIMIT ? OFFSET ?;`, [limit, offset]);
   let emoteData: any[] = [];
 
   emotes.forEach((emote: any) => {

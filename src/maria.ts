@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
+import { Pool } from "mariadb";
 import { pool } from "./server";
 
-export async function findQuery(query: string, values: any[]) {
+export async function findQuery(pool: Pool, query: string, values: any[]) {
   let conn;
   let data;
   try {
@@ -17,7 +18,7 @@ export async function findQuery(query: string, values: any[]) {
   }
 }
 
-export function checkForKey(req: Request, res: Response) {
+export function checkForKey(pool: Pool, req: Request, res: Response) {
   const apiKey = req.get("API-Key");
   const keys = process.env.API_KEY?.split(" ");
   if (!apiKey || !keys?.includes(apiKey)) {
@@ -28,7 +29,7 @@ export function checkForKey(req: Request, res: Response) {
   }
 }
 
-export async function updateOne(query: string, values: any[]) {
+export async function updateOne(pool: Pool, query: string, values: any[]) {
   let conn;
   let data;
   try {
@@ -48,7 +49,7 @@ export async function updateOne(query: string, values: any[]) {
   }
 }
 
-export async function findOne(table: string, toSearch: string) {
+export async function findOne(pool: Pool, table: string, toSearch: string) {
   let conn;
   let data;
   try {
@@ -67,7 +68,7 @@ export async function findOne(table: string, toSearch: string) {
   }
 }
 
-export function insertRow(query: string, values: any[]) {
+export function insertRow(pool: Pool, query: string, values: any[]) {
   pool
     .getConnection()
     .then((conn) => {

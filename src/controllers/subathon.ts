@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { checkForKey, findQuery } from "../maria";
+import { pool } from "../server";
 
 export interface SubathonChatter extends Document {
   ID: number;
@@ -22,6 +23,7 @@ const getSubathonMessageStats = async (
   } else limit = 100;
 
   let result = await findQuery(
+    pool,
     `SELECT * FROM subathonstats ORDER BY MessageCount DESC LIMIT ${limit} OFFSET ${offset};`,
     []
   );
@@ -52,6 +54,7 @@ const getSubathonGiftedSubsStats = async (
   } else limit = 100;
 
   let result = await findQuery(
+    pool,
     `SELECT * FROM subathonstats ORDER BY GiftedSubs DESC LIMIT ${limit} OFFSET ${offset};`,
     []
   );
@@ -82,6 +85,7 @@ const getSubathonDonatedBitsStats = async (
   } else limit = 100;
 
   let result = await findQuery(
+    pool,
     `SELECT * FROM subathonstats ORDER BY BitsDonated DESC LIMIT ${limit} OFFSET ${offset};`,
     []
   );
@@ -124,7 +128,7 @@ const getSubathonStartDate = async (
 };
 
 const getWheelSpinStats = async (req: Request, res: Response, next: NextFunction) => {
-  let query = await findQuery(`SELECT * FROM wheelspin`, []);
+  let query = await findQuery(pool, `SELECT * FROM wheelspin`, []);
 
   return res.status(200).json({
     data: {

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { checkForKey, findQuery } from "../maria";
+import { pool } from "../server";
 
 enum FeedbackType {
   feedback,
@@ -23,7 +24,7 @@ export interface IFeedback {
 }
 
 const getFeedback = async (req: Request, res: Response, next: NextFunction) => {
-  let result = await findQuery("SELECT * FROM suggestions;", []);
+  let result = await findQuery(pool, "SELECT * FROM suggestions;", []);
   let feedbackData: any[] = [];
   result.forEach((user: IFeedback) => {
     feedbackData.push({
@@ -47,7 +48,7 @@ const getFeedbackById = async (
 ) => {
   let id: string = req.params.id;
   console.log(id);
-  let query = await findQuery(`SELECT * FROM suggestions WHERE ID=? LIMIT 1;`, [
+  let query = await findQuery(pool, `SELECT * FROM suggestions WHERE ID=? LIMIT 1;`, [
     id,
   ]);
 

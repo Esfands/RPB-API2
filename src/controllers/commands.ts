@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { findQuery } from "../maria";
+import { pool } from "../server";
 
 /* Normal Commands */
 
@@ -17,7 +18,7 @@ export interface ICommand {
 }
 
 const getCommands = async (req: Request, res: Response, next: NextFunction) => {
-  let result = await findQuery("SELECT * FROM commands;", []);
+  let result = await findQuery(pool, "SELECT * FROM commands;", []);
   let commandData: any[] = [];
   result.forEach((cmd: ICommand) => {
     commandData.push({
@@ -40,7 +41,7 @@ const getCommands = async (req: Request, res: Response, next: NextFunction) => {
 
 const getCommand = async (req: Request, res: Response, next: NextFunction) => {
   let name: string = req.params.name;
-  let query = await findQuery(`SELECT * FROM commands WHERE Name=? LIMIT 1;`, [
+  let query = await findQuery(pool, `SELECT * FROM commands WHERE Name=? LIMIT 1;`, [
     name,
   ]);
 
@@ -73,7 +74,7 @@ const getOTFCommands = async (
   res: Response,
   next: NextFunction
 ) => {
-  let result = await findQuery("SELECT * FROM otf;", []);
+  let result = await findQuery(pool, "SELECT * FROM otf;", []);
   let commandData: any[] = [];
   result.forEach((cmd: IOTFCommand) => {
     commandData.push({
@@ -94,7 +95,7 @@ const getOTFCommand = async (
   next: NextFunction
 ) => {
   let name: string = req.params.name;
-  let query = await findQuery(`SELECT * FROM otf WHERE Name=? LIMIT 1;`, [
+  let query = await findQuery(pool, `SELECT * FROM otf WHERE Name=? LIMIT 1;`, [
     name,
   ]);
 

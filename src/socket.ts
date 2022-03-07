@@ -75,6 +75,9 @@ export function sendWSPredPollOverlayPayload(
 }
 
 export async function sendWSChannelPointRewardPayload(Clients: object[], rewardTitle: string, prompt: string) {
+  let testEmotes = ["2TONNING", "-30k", "AlienDance", "Aware"];
+  prompt = testEmotes[Math.floor(Math.random() * testEmotes.length)];
+
   if (rewardTitle.toLowerCase() === "test reward from cli") {
 
     // Prio: sub, BTTV, FFZ, 7tv
@@ -110,13 +113,13 @@ export async function sendWSChannelPointRewardPayload(Clients: object[], rewardT
 // Get current game category
 export async function getGameLayout() {
   let gQuery = await StreamStat.findOne({ type: "esfandtv" });
-  let query = await findOne(`alertsettings`, `Game='${gQuery!.category}'`);
+  let query = await findOne(pool, `alertsettings`, `Game='${gQuery!.category}'`);
   return query ? query.Format : Layout.REGULAR;
 }
 
 // Get the offset for the given category
 export async function getLayoutOffset() {
-  let query = await findQuery("SELECT * FROM settings WHERE Title='esfandevents_offset' LIMIT 1;", []);
+  let query = await findQuery(pool, "SELECT * FROM settings WHERE Title='esfandevents_offset' LIMIT 1;", []);
   let data = JSON.parse(query[0].Data);
   return data.offset;
 }

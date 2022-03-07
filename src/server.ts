@@ -10,27 +10,17 @@ import feedbackRoutes from "./routes/feedback";
 import emoteRoutes from "./routes/emotes";
 import subathonRoutes from "./routes/subathon";
 import twitchRoutes from "./routes/twitch";
+import mahcksbotRoutes from "./routes/mahcksbot";
 import * as crypto from "crypto";
 import mongoose from "mongoose";
 import * as WebSocket from "ws";
-import fs from "fs";
-import * as path from "path";
 import websocketServer from "./wsServer";
 
 // MariaDB setup
 import mariadb from "mariadb";
-import { findOne, insertRow, updateOne } from "./maria";
+import { insertRow, updateOne } from "./maria";
 import { StreamStat } from "./schemas/ChannelStats";
-import {
-  Events,
-  EventType,
-  getGameLayout,
-  getLayoutOffset,
-  Layout,
-  sendWSChannelPointRewardPayload,
-  sendWSPredPollOverlayPayload,
-  Status,
-} from "./socket";
+import { getGameLayout, getLayoutOffset, EventType, Events, Status, sendWSPredPollOverlayPayload, sendWSChannelPointRewardPayload } from "./socket";
 export const pool = mariadb.createPool({
   host: process.env.MARIA_HOST,
   user: process.env.MARIA_USER,
@@ -38,8 +28,12 @@ export const pool = mariadb.createPool({
   database: process.env.MARIA_DATABASE,
 });
 
-let getLatestPollItem: NodeJS.Timer;
-let getLatestPrediction: NodeJS.Timer;
+export const mbPool = mariadb.createPool({
+  host: process.env.MARIA_HOST,
+  user: process.env.MARIA_USER,
+  password: process.env.MARIA_PASSWORD,
+  database: 'mahcksbot',
+});
 
 const URI: any = process.env.MONGO_URI;
 mongoose.connect(URI).then(() => {
@@ -62,7 +56,6 @@ mongoose.connect(URI).then(() => {
 
   /* Server */
   const httpsServer = http.createServer(router).listen(5000);
-
   let wsClients: any[] = [];
 
   function uuidv4() {
@@ -76,33 +69,6 @@ mongoose.connect(URI).then(() => {
     );
   }
 
-  /* wss.on("connection", (ws: any) => {
-    const id = uuidv4();
-
-    console.log("Socket with ID " + id + " has been opened");
-    wsClients.push({ id: id, socket: ws });
-  });
-
-  function pingClients() {
-    wsClients.forEach((object: any) => {
-      if (object["socket"].readyState === WebSocket.CLOSED) {
-        let ind = wsClients.findIndex((obj: any) => obj.id === object["id"]);
-        wsClients.splice(ind, 1);
-        console.log("Socket with ID " + object["id"] + " has been closed");
-      }
-    });
-  }
-
-  setInterval(pingClients, 300000);
-
-  wss.addListener("close", function (event: any) {
-    console.log("Client disconnected");
-  }); */
-
-  /*  wss.on("close", (ws: any) => {
-     console.log("Websockets closed");
-   });
-  */
   /* Logging */
   router.use(morgan("dev"));
 
@@ -139,6 +105,7 @@ mongoose.connect(URI).then(() => {
   router.use("/", emoteRoutes);
   router.use("/", subathonRoutes);
   router.use("/", twitchRoutes);
+  router.use('/', mahcksbotRoutes);
 
   /* Event Sub */
   router.post("/eventsub", async (req, res) => {
@@ -152,7 +119,6 @@ mongoose.connect(URI).then(() => {
       let notification = JSON.parse(req.body);
 
       if (MESSAGE_TYPE_NOTIFICATION === req.headers[MESSAGE_TYPE]) {
-        // TODO: Do something with the data
         console.log(`Event type: ${notification.subscription.type}`);
 
         if (notification.subscription.type === "stream.online") {
@@ -161,8 +127,8 @@ mongoose.connect(URI).then(() => {
             { type: "esfandtv" },
             { status: "live" }
           ).then((res) => console.log("EsfandTV just went live..."));
-
-          await insertRow(`INSERT INTO hoursstreamed (Started) VALUES (?)`, [
+      
+          await insertRow(pool, `INSERT INTO hoursstreamed (Started) VALUES (?)`, [
             new Date(),
           ]);
         } else if (notification.subscription.type === "stream.offline") {
@@ -190,11 +156,11 @@ mongoose.connect(URI).then(() => {
             new Date(info.started_at),
             new Date(info.locks_at),
           ];
-          await insertRow(`INSERT INTO predictions (ID, Broadcaster, Status, Title, OutComes, StartedAt, LocksAt) VALUES (?, ?, ?, ?, ?, ?, ?)`, values);
+          await insertRow(pool, `INSERT INTO predictions (ID, Broadcaster, Status, Title, OutComes, StartedAt, LocksAt) VALUES (?, ?, ?, ?, ?, ?, ?)`, values);
           //console.log(info);
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
-
+      
           console.log(
             EventType.PREDICTION,
             Events.PREDICTION_BEGIN,
@@ -205,7 +171,7 @@ mongoose.connect(URI).then(() => {
             info.outcomes,
             { started: info.started_at, ends: info.locks_at }
           );
-
+      
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.PREDICTION,
@@ -226,13 +192,13 @@ mongoose.connect(URI).then(() => {
           let info = notification.event;
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
-
+      
           let payload = {
             winning_outcome_id: null,
             status: null,
             outcomes: info.outcomes,
           };
-
+      
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.PREDICTION,
@@ -245,7 +211,7 @@ mongoose.connect(URI).then(() => {
             payload,
             { started: info.started_at, ends: info.locks_at }
           );
-
+      
         } else if (
           notification.subscription.type === "channel.prediction.lock"
         ) {
@@ -257,13 +223,14 @@ mongoose.connect(URI).then(() => {
             info.id,
           ];
           await updateOne(
+            pool,
             `UPDATE predictions SET Status=?, Outcomes=?, LocksAt=? WHERE ID=?;`,
             values
           );
           console.log(info);
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
-
+      
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.PREDICTION,
@@ -291,13 +258,14 @@ mongoose.connect(URI).then(() => {
             info.id,
           ];
           await updateOne(
+            pool,
             `UPDATE predictions SET Status=?, Outcomes=?, LocksAt=? WHERE ID=?`,
             values
           );
           console.log(info);
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
-
+      
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.PREDICTION,
@@ -328,10 +296,11 @@ mongoose.connect(URI).then(() => {
             new Date(info.ends_at),
           ];
           await insertRow(
+            pool,
             `INSERT INTO polls (ID, Broadcaster, Active, Title, Choices, BitsVoting, ChannelPointsVoting, StartedAt, EndsAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
             values
           );
-
+      
           let payload: object = {
             choices: info.choices,
             bits: info.bits_voting,
@@ -339,7 +308,7 @@ mongoose.connect(URI).then(() => {
           };
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
-
+      
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.POLL,
@@ -352,7 +321,7 @@ mongoose.connect(URI).then(() => {
             payload,
             { started: info.started_at, ends: info.ends_at }
           );
-
+      
         } else if (notification.subscription.type === "channel.poll.progress") {
           let info = notification.event;
           let payload: object = {
@@ -362,7 +331,7 @@ mongoose.connect(URI).then(() => {
           };
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
-
+      
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.POLL,
@@ -375,10 +344,11 @@ mongoose.connect(URI).then(() => {
             payload,
             { started: info.started_at, ends: info.ends_at }
           );
-
+      
         } else if (notification.subscription.type === "channel.poll.end") {
           let info = notification.event;
           await updateOne(
+            pool,
             `UPDATE polls SET Active=?, Choices=?, EndsAt=? WHERE ID=?;`,
             [
               "closed",
@@ -387,7 +357,7 @@ mongoose.connect(URI).then(() => {
               info.id,
             ]
           );
-
+      
           let payload: object = {
             choices: info.choices,
             bits: info.bits_voting,
@@ -395,7 +365,7 @@ mongoose.connect(URI).then(() => {
           };
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
-
+      
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.POLL,
@@ -410,19 +380,20 @@ mongoose.connect(URI).then(() => {
           );
         } else if (notification.subscription.type === "channel.channel_points_custom_reward_redemption.add") {
           let info = notification.event;
-
+      
           if (info.status === "unfulfilled") {
             sendWSChannelPointRewardPayload(wsClients, info.reward.title, info.user_input);
           }
-
+      
         } else if (notification.subscription.type === "channel.channel_points_custom_reward_redemption.update") {
           let info = notification.event;
-
+      
           console.log('channel.channel_points_custom_reward_redemption.update')
           if (info.status === "unfulfilled") {
             sendWSChannelPointRewardPayload(wsClients, info.reward.title, info.user_input);
           }
         }
+
 
         res.sendStatus(204);
       } else if (MESSAGE_TYPE_VERIFICATION === req.headers[MESSAGE_TYPE]) {
