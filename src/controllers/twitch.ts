@@ -108,8 +108,8 @@ const getTwitchId = async (req: Request, res: Response, next: NextFunction) => {
   let userData = nameSearch.data["data"][0];
 
   if (!userData) {
-    return res.status(404).json({
-      data: `${query} not found`,
+    return res.status(200).json({
+      data: null,
     });
   }
 
