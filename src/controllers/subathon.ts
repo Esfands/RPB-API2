@@ -142,10 +142,34 @@ const getWheelSpinStats = async (req: Request, res: Response, next: NextFunction
   });
 }
 
+const getUserSubathonStats = async (req: Request, res: Response, next: NextFunction) => {
+  let username: string = req.params.username;
+  let query = await findQuery(pool, 'SELECT * FROM subathonstats WHERE Username=?', [username]);
+
+  if (!query[0]) return res.status(200).json({
+    id: null,
+    username: null,
+    messageCount: null,
+    giftedSubs: null,
+    bitsDonated: null
+  })
+
+  let data = query[0];
+
+  return res.status(200).json({
+    id: data.ID,
+    username: data.Username,
+    messageCount: data.MessageCount,
+    giftedSubs: data.GiftedSubs,
+    bitsDonated: data.BitsDonated
+  });
+}
+
 export default {
   getSubathonMessageStats,
   getSubathonGiftedSubsStats,
   getSubathonDonatedBitsStats,
   getSubathonStartDate,
-  getWheelSpinStats
+  getWheelSpinStats,
+  getUserSubathonStats
 };
