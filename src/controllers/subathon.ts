@@ -156,12 +156,21 @@ const getUserSubathonStats = async (req: Request, res: Response, next: NextFunct
 
   let data = query[0];
 
+  const [messageRank, subRank, bitsRank] = await Promise.all([
+    findQuery(pool, `SELECT t.ID, (SELECT COUNT(*) FROM subathonstats AS X WHERE t.MessageCount <= X.MessageCount) AS POSITION, t.Username, t.MessageCount FROM subathonstats AS t WHERE t.Username = ?;`, [username]),
+    findQuery(pool, `SELECT t.ID, (SELECT COUNT(*) FROM subathonstats AS X WHERE t.GiftedSubs <= X.GiftedSubs) AS POSITION, t.Username, t.GiftedSubs FROM subathonstats AS t WHERE t.Username = ?;`, [username]),
+    findQuery(pool, `SELECT t.ID, (SELECT COUNT(*) FROM subathonstats AS X WHERE t.BitsDonated <= X.BitsDonated) AS POSITION, t.Username, t.BitsDonated FROM subathonstats AS t WHERE t.Username = ?;`, [username])
+  ]);
+
   return res.status(200).json({
     id: data.ID,
     username: data.Username,
     messageCount: data.MessageCount,
+    messageRank: messageRank[0].POSITION,
     giftedSubs: data.GiftedSubs,
-    bitsDonated: data.BitsDonated
+    subRank: subRank[0].POSITION,
+    bitsDonated: data.BitsDonated,
+    bitsRank: bitsRank[0].POSITION,
   });
 }
 
