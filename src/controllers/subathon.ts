@@ -1,3 +1,4 @@
+import axios from "axios";
 import { Request, Response, NextFunction } from "express";
 import { checkForKey, findQuery } from "../maria";
 import { pool } from "../server";
@@ -148,10 +149,14 @@ const getUserSubathonStats = async (req: Request, res: Response, next: NextFunct
 
   if (!query[0]) return res.status(200).json({
     id: null,
+    avatar: null,
     username: null,
     messageCount: null,
+    messageRank: null,
     giftedSubs: null,
-    bitsDonated: null
+    subRank: null,
+    bitsDonated: null,
+    bitsRank: null,
   })
 
   let data = query[0];
@@ -162,8 +167,27 @@ const getUserSubathonStats = async (req: Request, res: Response, next: NextFunct
     findQuery(pool, `SELECT t.ID, (SELECT COUNT(*) FROM subathonstats AS X WHERE t.BitsDonated <= X.BitsDonated) AS POSITION, t.Username, t.BitsDonated FROM subathonstats AS t WHERE t.Username = ?;`, [username])
   ]);
 
+  let pfp = '';
+  if (data.Avatar === null) {
+    let cid = process.env.YBD_ID as string;
+    let token = process.env.YBD_TOKEN as string;
+
+    let pfpQ = await axios({
+      method: "GET",
+      url: `https://api.twitch.tv/helix/users?login=${username}`,
+      headers: {
+        Authorization: "Bearer " + token,
+        "Client-Id": cid,
+      },
+    });
+
+    await findQuery(pool, 'UPDATE subathonstats SET Avatar=? WHERE Username=?;', [pfpQ.data.data[0].profile_image_url, username]);
+    pfp = pfpQ.data.data[0].profile_image_url;
+  } else pfp = data.Avatar;
+
   return res.status(200).json({
     id: data.ID,
+    avatar: pfp,
     username: data.Username,
     messageCount: data.MessageCount,
     messageRank: messageRank[0].POSITION,
