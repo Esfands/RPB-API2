@@ -219,6 +219,44 @@ const getEsfandsChannelEmotes = async (req: Request, res: Response, next: NextFu
   });
 };
 
+interface UnlistedStreamer {
+  username: string;
+  title: string;
+  viewerCount: number;
+  thumbnail: string;
+  isMature: boolean;
+}
+
+const getUnlistedStreamList = async (req: Request, res: Response, next: NextFunction) => {
+  let cid = process.env.YBD_ID as string;
+  let token = process.env.YBD_TOKEN as string;
+
+  const streams = await axios.get("https://api.twitch.tv/helix/streams?game_id=0&first=100", {
+    headers: {
+      Authorization: "Bearer " + token,
+      "Client-Id": cid,
+    },
+  });
+
+  let toReturn: UnlistedStreamer[] = [];
+
+  streams.data.data.forEach((strim: any) => {
+    let test: UnlistedStreamer = {
+      username: strim.user_name,
+      title: strim.title,
+      viewerCount: strim.viewer_count,
+      thumbnail: strim.thumbnail_url.replace("{width}", "1920").replace("{height}", "1080"),
+      isMature: strim.is_mature
+    }
+
+    toReturn.push(test);
+  });
+
+  return res.status(200).json({
+    data: toReturn
+  });
+}
+
 export default {
   getTwitchToken,
   twitchTokenCallback,
@@ -226,4 +264,5 @@ export default {
   getTwitchId,
   getTwitchChannelEmotes,
   getEsfandsChannelEmotes,
+  getUnlistedStreamList
 };
