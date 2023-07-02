@@ -109,7 +109,7 @@ const getTwitchId = async (req: Request, res: Response, next: NextFunction) => {
 
   if (!userData) {
     return res.status(200).json({
-      data: null,
+      "err": "Invalid username"
     });
   }
 
