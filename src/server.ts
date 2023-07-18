@@ -181,19 +181,13 @@ mongoose.connect(URI).then(() => {
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
 
-          let payload = {
-            winning_outcome_id: null,
-            status: null,
-            outcomes: info.outcomes,
-          };
-
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.PREDICTION,
             Events.PREDICTION_PROGRESS,
             notificationLayout,
             offset,
-            payload,
+            info,
           );
 
         } else if (
