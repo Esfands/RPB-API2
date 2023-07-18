@@ -127,7 +127,7 @@ mongoose.connect(URI).then(() => {
             { type: "esfandtv" },
             { status: "live" }
           ).then((res) => console.log("EsfandTV just went live..."));
-      
+
           await insertRow(pool, `INSERT INTO hoursstreamed (Started) VALUES (?)`, [
             new Date(),
           ]);
@@ -160,7 +160,7 @@ mongoose.connect(URI).then(() => {
           //console.log(info);
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
-      
+
           console.log(
             EventType.PREDICTION,
             Events.PREDICTION_BEGIN,
@@ -171,7 +171,7 @@ mongoose.connect(URI).then(() => {
             info.outcomes,
             { started: info.started_at, ends: info.locks_at }
           );
-      
+
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.PREDICTION,
@@ -192,13 +192,13 @@ mongoose.connect(URI).then(() => {
           let info = notification.event;
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
-      
+
           let payload = {
             winning_outcome_id: null,
             status: null,
             outcomes: info.outcomes,
           };
-      
+
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.PREDICTION,
@@ -211,7 +211,7 @@ mongoose.connect(URI).then(() => {
             payload,
             { started: info.started_at, ends: info.locks_at }
           );
-      
+
         } else if (
           notification.subscription.type === "channel.prediction.lock"
         ) {
@@ -230,7 +230,7 @@ mongoose.connect(URI).then(() => {
           console.log(info);
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
-      
+
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.PREDICTION,
@@ -265,7 +265,7 @@ mongoose.connect(URI).then(() => {
           console.log(info);
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
-      
+
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.PREDICTION,
@@ -300,7 +300,7 @@ mongoose.connect(URI).then(() => {
             `INSERT INTO polls (ID, Broadcaster, Active, Title, Choices, BitsVoting, ChannelPointsVoting, StartedAt, EndsAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
             values
           );
-      
+
           let payload: object = {
             choices: info.choices,
             bits: info.bits_voting,
@@ -308,7 +308,7 @@ mongoose.connect(URI).then(() => {
           };
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
-      
+
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.POLL,
@@ -321,7 +321,7 @@ mongoose.connect(URI).then(() => {
             payload,
             { started: info.started_at, ends: info.ends_at }
           );
-      
+
         } else if (notification.subscription.type === "channel.poll.progress") {
           let info = notification.event;
           let payload: object = {
@@ -331,7 +331,7 @@ mongoose.connect(URI).then(() => {
           };
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
-      
+
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.POLL,
@@ -344,7 +344,7 @@ mongoose.connect(URI).then(() => {
             payload,
             { started: info.started_at, ends: info.ends_at }
           );
-      
+
         } else if (notification.subscription.type === "channel.poll.end") {
           let info = notification.event;
           await updateOne(
@@ -357,7 +357,7 @@ mongoose.connect(URI).then(() => {
               info.id,
             ]
           );
-      
+
           let payload: object = {
             choices: info.choices,
             bits: info.bits_voting,
@@ -365,7 +365,7 @@ mongoose.connect(URI).then(() => {
           };
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
-      
+
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.POLL,
@@ -380,14 +380,14 @@ mongoose.connect(URI).then(() => {
           );
         } else if (notification.subscription.type === "channel.channel_points_custom_reward_redemption.add") {
           let info = notification.event;
-      
+
           if (info.status === "unfulfilled") {
             sendWSChannelPointRewardPayload(wsClients, info.reward.title, info.user_input);
           }
-      
+
         } else if (notification.subscription.type === "channel.channel_points_custom_reward_redemption.update") {
           let info = notification.event;
-      
+
           console.log('channel.channel_points_custom_reward_redemption.update')
           if (info.status === "unfulfilled") {
             sendWSChannelPointRewardPayload(wsClients, info.reward.title, info.user_input);

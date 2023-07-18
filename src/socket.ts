@@ -44,6 +44,17 @@ export enum Layout {
   COMPACT = "compact",
 }
 
+export interface WSMessage {
+  mc: MessageCode; // Message Code
+  d: PayloadObject | string; // Payload Data
+}
+
+export enum MessageCode {
+  "DISPATCH" = 0,
+  "CLOSE" = 1,
+  "EOF" = 2
+}
+
 export function sendWSPredPollOverlayPayload(
   Clients: object[],
   eventType: EventType,
@@ -68,9 +79,14 @@ export function sendWSPredPollOverlayPayload(
     dates: dates,
   };
 
+  let message: WSMessage = {
+    d: PayloadToSend,
+    mc: MessageCode.DISPATCH,
+  }
+
   if (Clients.length === 0) return console.log("No clients to send payload to.");
   Clients.forEach((client: any) => {
-    client.send(JSON.stringify(PayloadToSend));
+    client.send(JSON.stringify(message));
   });
 }
 
