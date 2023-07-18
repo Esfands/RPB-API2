@@ -20,7 +20,7 @@ import websocketServer from "./wsServer";
 import mariadb from "mariadb";
 import { insertRow, updateOne } from "./maria";
 import { StreamStat } from "./schemas/ChannelStats";
-import { getGameLayout, getLayoutOffset, EventType, Events, Status, sendWSPredPollOverlayPayload, sendWSChannelPointRewardPayload } from "./socket";
+import { getGameLayout, getLayoutOffset, EventType, Events, sendWSPredPollOverlayPayload, sendWSChannelPointRewardPayload } from "./socket";
 export const pool = mariadb.createPool({
   host: process.env.MARIA_HOST,
   user: process.env.MARIA_USER,
@@ -164,29 +164,17 @@ mongoose.connect(URI).then(() => {
           console.log(
             EventType.PREDICTION,
             Events.PREDICTION_BEGIN,
-            Status.OPEN,
             notificationLayout,
-            info.id,
-            info.title,
             info.outcomes,
-            { started: info.started_at, ends: info.locks_at }
           );
 
           sendWSPredPollOverlayPayload(
             wsClients,
             EventType.PREDICTION,
             Events.PREDICTION_BEGIN,
-            Status.OPEN,
             notificationLayout,
             offset,
-            info.id,
-            info.title,
-            {
-              winning_outcome_id: null,
-              status: null,
-              outcomes: info.outcomes,
-            },
-            { started: info.started_at, ends: info.locks_at }
+            info,
           );
         } else if (notification.subscription.type === "channel.prediction.progress") {
           let info = notification.event;
@@ -203,13 +191,9 @@ mongoose.connect(URI).then(() => {
             wsClients,
             EventType.PREDICTION,
             Events.PREDICTION_PROGRESS,
-            Status.OPEN,
             notificationLayout,
             offset,
-            info.id,
-            info.title,
             payload,
-            { started: info.started_at, ends: info.locks_at }
           );
 
         } else if (
@@ -235,17 +219,9 @@ mongoose.connect(URI).then(() => {
             wsClients,
             EventType.PREDICTION,
             Events.PREDICTION_LOCK,
-            Status.LOCKED,
             notificationLayout,
             offset,
-            info.id,
-            info.title,
-            {
-              winning_outcome_id: null,
-              status: null,
-              outcomes: info.outcomes,
-            },
-            { started: info.started_at, ends: info.locked_at }
+            info,
           );
         } else if (
           notification.subscription.type === "channel.prediction.end"
@@ -270,17 +246,9 @@ mongoose.connect(URI).then(() => {
             wsClients,
             EventType.PREDICTION,
             Events.PREDICTION_END,
-            Status.CLOSED,
             notificationLayout,
             offset,
-            info.id,
-            info.title,
-            {
-              winning_outcome_id: info.winning_outcome_id,
-              status: info.status,
-              outcomes: info.outcomes,
-            },
-            { started: info.started_at, ends: info.locked_at }
+            info,
           );
         } else if (notification.subscription.type === "channel.poll.begin") {
           let info = notification.event;
@@ -301,11 +269,6 @@ mongoose.connect(URI).then(() => {
             values
           );
 
-          let payload: object = {
-            choices: info.choices,
-            bits: info.bits_voting,
-            points: info.channel_points_voting,
-          };
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
 
@@ -313,22 +276,12 @@ mongoose.connect(URI).then(() => {
             wsClients,
             EventType.POLL,
             Events.POLL_BEGIN,
-            Status.OPEN,
             notificationLayout,
             offset,
-            info.id,
-            info.title,
-            payload,
-            { started: info.started_at, ends: info.ends_at }
+            info,
           );
 
         } else if (notification.subscription.type === "channel.poll.progress") {
-          let info = notification.event;
-          let payload: object = {
-            choices: info.choices,
-            bits: info.bits_voting,
-            points: info.channel_points_voting,
-          };
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
 
@@ -336,13 +289,9 @@ mongoose.connect(URI).then(() => {
             wsClients,
             EventType.POLL,
             Events.POLL_PROGRESS,
-            Status.OPEN,
             notificationLayout,
             offset,
-            info.id,
-            info.title,
-            payload,
-            { started: info.started_at, ends: info.ends_at }
+            notification.event,
           );
 
         } else if (notification.subscription.type === "channel.poll.end") {
@@ -358,11 +307,6 @@ mongoose.connect(URI).then(() => {
             ]
           );
 
-          let payload: object = {
-            choices: info.choices,
-            bits: info.bits_voting,
-            points: info.channel_points_voting,
-          };
           let notificationLayout = await getGameLayout();
           let offset = await getLayoutOffset();
 
@@ -370,13 +314,9 @@ mongoose.connect(URI).then(() => {
             wsClients,
             EventType.POLL,
             Events.POLL_END,
-            Status.CLOSED,
             notificationLayout,
             offset,
-            info.id,
-            info.title,
-            payload,
-            { started: info.started_at, ends: info.ends_at }
+            info,
           );
         } else if (notification.subscription.type === "channel.channel_points_custom_reward_redemption.add") {
           let info = notification.event;

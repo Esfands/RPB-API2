@@ -21,22 +21,12 @@ export enum Events {
   CHANNEL_POINT_ADD = "channel.channel_points_custom_reward_redemption.add"
 }
 
-export enum Status {
-  OPEN = "open",
-  LOCKED = "locked",
-  CLOSED = "closed",
-}
-
 interface PayloadObject {
   eventType: EventType;
   event: Events;
-  status: Status;
   format: Layout;
   offset: "top" | "middle" | number;
-  id: string;
-  title: string;
   payload: object;
-  dates: object;
 }
 
 export enum Layout {
@@ -59,24 +49,16 @@ export function sendWSPredPollOverlayPayload(
   Clients: object[],
   eventType: EventType,
   event: Events,
-  status: Status,
   format: Layout,
   offset: "top" | "middle" | number,
-  id: string,
-  title: string,
   payload: object,
-  dates: object
 ) {
   let PayloadToSend: PayloadObject = {
     eventType: eventType,
     event: event,
-    status: status,
     format: format,
     offset: offset,
-    id: id,
-    title: title,
     payload: payload,
-    dates: dates,
   };
 
   let message: WSMessage = {
