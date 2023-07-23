@@ -108,7 +108,7 @@ mongoose.connect(URI).then(() => {
   router.use('/', mahcksbotRoutes);
 
   /* Event Sub */
-  router.post("/eventsub", async (req, res) => {
+  router.get("/eventsub", async (req, res) => {
     let secret = getSecret();
     let message = getHmacMessage(req);
     let hmac = HMAC_PREFIX + getHmac(secret, message);
